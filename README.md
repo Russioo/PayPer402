@@ -1,300 +1,351 @@
-# x402 AI Generation Platform
+# PayPer402
 
-A cutting-edge platform for instant AI-powered image and video generation with pay-per-use via the x402 Payment Protocol.
+Professional AI image and video generation platform with pay-per-use pricing via HTTP 402 Payment Protocol.
 
-![x402 Platform](https://img.shields.io/badge/x402-AI%20Platform-blueviolet?style=for-the-badge)
-![Next.js](https://img.shields.io/badge/Next.js-14-black?style=for-the-badge&logo=next.js)
-![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?style=for-the-badge&logo=typescript)
+![Next.js](https://img.shields.io/badge/Next.js-14-black?style=flat-square&logo=next.js)
+![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?style=flat-square&logo=typescript)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind-3-38bdf8?style=flat-square&logo=tailwindcss)
 
-## 🌟 Features
+## Overview
 
-### Image Generation
-- **GPT-Image-1** (OpenAI) - High precision with advanced prompt understanding
-- **Ideogram** - Diverse art styles perfect for art, memes, and graphics  
-- **Grok-Image** (xAI) - High-resolution with batch generation capabilities
+PayPer402 is a modern web application that enables users to generate high-quality images and videos using state-of-the-art AI models. Built on the HTTP 402 Payment Protocol, it offers a seamless pay-per-use experience without subscriptions or complicated billing.
 
-### Video Generation
-- **Sora** (OpenAI) - Text-to-video with audio
-- **Grok-Video** (xAI) - Batch generation with high quality output
-- **Veo 3.1** (Google Gemini) - Multimodal input support
+Generate professional content with leading AI models including Sora 2, Veo 3.1, GPT Image, Ideogram, and Qwen VL - pay only for what you use, starting from $0.03 per generation.
 
-## 🚀 x402 Payment Flow
+## Features
 
-- ✅ No login required
-- ✅ No subscription needed
-- ✅ Pay-per-generation with cryptocurrency (USDC)
-- ✅ HTTP 402 Payment Required protocol
-- ✅ Instant micro-payments
-- ✅ AI-agent friendly
+### AI Models
 
-## 🎨 Modern Design Features
+**Image Generation**
+- **GPT Image 1** (OpenAI) - Advanced image generation with optional reference images
+- **Ideogram** - High-quality art generation with multiple rendering speeds
+- **Qwen VL** - Fast image generation with acceleration options
 
-- **Sleek Dark Theme** - Professional glassmorphism design
-- **Animated Gradients** - Smooth color transitions and effects
-- **Interactive Components** - Hover effects and micro-interactions
-- **Responsive Layout** - Perfect on all devices
-- **Real-time Feedback** - Loading states and animations
+**Video Generation**
+- **Sora 2** (OpenAI) - Professional text-to-video generation
+- **Veo 3.1** (Google) - Advanced video generation with image-to-video support
 
-## 🛠️ Quick Start
+### Platform Features
+
+- **Pay-Per-Use**: No subscriptions, pay only for completed generations
+- **HTTP 402 Protocol**: Native integration with payment-required standard
+- **Real-time Progress**: Live generation status and time estimates
+- **Multiple Outputs**: Support for batch generation and variants
+- **Cloud Storage**: Integrated Supabase storage for all generated content
+- **Modern UI**: Clean, minimalist design with smooth animations
+- **Responsive Design**: Optimized for desktop, tablet, and mobile devices
+
+## Tech Stack
+
+- **Framework**: Next.js 14 (App Router)
+- **Language**: TypeScript
+- **Styling**: Tailwind CSS
+- **Storage**: Supabase
+- **Icons**: Lucide React
+- **HTTP Client**: Axios
+- **File Handling**: JSZip for batch downloads
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js 18+ and npm
+- Supabase account and project
+- API keys for AI models (OpenAI, Ideogram, Qwen, Google)
 
 ### Installation
 
 ```bash
+# Clone the repository
+git clone https://github.com/Russioo/PayPer402.git
+cd PayPer402
+
 # Install dependencies
 npm install
 
-# Copy environment variables
+# Configure environment variables
 cp .env.local.example .env.local
+```
 
-# Edit .env.local and add your API keys (optional for development)
-# - OPENAI_API_KEY
-# - IDEOGRAM_API_KEY
-# - XAI_API_KEY
-# - GOOGLE_API_KEY
-# - X402_WALLET_ADDRESS
+### Environment Variables
 
+Create a `.env.local` file with the following variables:
+
+```env
+# Supabase
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
+
+# AI Model APIs
+OPENAI_API_KEY=your_openai_api_key
+IDEOGRAM_API_KEY=your_ideogram_api_key
+QWEN_API_KEY=your_qwen_api_key
+GOOGLE_API_KEY=your_google_api_key
+
+# Payment (Optional)
+PAYMENT_WALLET_ADDRESS=your_wallet_address
+```
+
+### Development
+
+```bash
 # Start development server
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) in your browser. 🎉
+Open [http://localhost:3000](http://localhost:3000) to view the application.
 
-## 📁 Project Structure
+### Build for Production
+
+```bash
+# Create production build
+npm run build
+
+# Start production server
+npm start
+```
+
+## Project Structure
 
 ```
-x402-ai-platform/
+PayPer402/
 ├── app/
 │   ├── api/
-│   │   ├── generate/          # AI generation endpoints
-│   │   │   ├── route.ts       # POST: Initialize generation
-│   │   │   └── [id]/route.ts  # GET: Fetch result
-│   │   └── payment/
-│   │       └── verify/route.ts # POST: Verify payment
-│   ├── page.tsx               # Main page
-│   ├── layout.tsx             # Root layout
-│   └── globals.css            # Global styles
+│   │   ├── generate/
+│   │   │   ├── route.ts          # Initialize generation
+│   │   │   └── [id]/route.ts     # Poll generation status
+│   │   ├── upload/route.ts       # File upload handler
+│   │   ├── payment/
+│   │   │   └── verify/route.ts   # Payment verification
+│   │   └── callback/route.ts     # Payment callbacks
+│   ├── page.tsx                   # Main application page
+│   ├── about/page.tsx            # About page
+│   ├── docs/page.tsx             # Documentation page
+│   ├── layout.tsx                # Root layout
+│   └── globals.css               # Global styles
 ├── components/
-│   ├── Header.tsx             # Navigation header
-│   ├── ModelCard.tsx          # AI model selector
-│   ├── GenerationForm.tsx     # Prompt input form
-│   ├── PaymentModal.tsx       # x402 payment modal
-│   └── ResultDisplay.tsx      # Result viewer
+│   ├── GenerationForm.tsx        # Prompt input and options
+│   ├── GenerationProgress.tsx    # Real-time progress display
+│   ├── ResultDisplay.tsx         # Result viewer with download
+│   ├── PaymentModal.tsx          # 402 payment interface
+│   ├── ModelCard.tsx             # AI model selector
+│   ├── Header.tsx                # Navigation header
+│   ├── InteractiveBackground.tsx # Animated background
+│   └── Toast.tsx                 # Notification system
 ├── lib/
-│   ├── models.ts              # AI model definitions
-│   └── payment.ts             # x402 payment logic
+│   ├── models.ts                 # AI model definitions
+│   ├── openai-image.ts           # OpenAI integration
+│   ├── ideogram-ai.ts            # Ideogram integration
+│   ├── qwen-ai.ts                # Qwen integration
+│   ├── veo-ai.ts                 # Veo integration
+│   ├── kie-ai.ts                 # Kling AI integration
+│   ├── supabase.ts               # Supabase client
+│   ├── supabase-helpers.ts       # Storage helpers
+│   ├── storage.ts                # File storage utilities
+│   └── payment.ts                # Payment logic
 ├── types/
-│   └── index.ts               # TypeScript types
-└── public/                     # Static assets
+│   └── index.ts                  # TypeScript definitions
+└── public/                       # Static assets
 ```
 
-## 🔧 Tech Stack
+## Pricing
 
-- **Framework**: Next.js 14 (App Router)
-- **Styling**: Tailwind CSS
-- **Language**: TypeScript
-- **Icons**: Lucide React
-- **HTTP Client**: Axios
+| Model | Type | Duration/Options | Price (USD) |
+|-------|------|------------------|-------------|
+| GPT Image 1 | Image | 1 image | $0.50 |
+| Ideogram | Image | 1 image | $0.30 |
+| Qwen VL | Image | 1 image | $0.03 |
+| Sora 2 | Video | 5-15 seconds | $1.50 - $2.50 |
+| Veo 3.1 | Video | ~8 seconds | $1.80 |
 
-## 💰 Pricing
+All prices are pay-per-generation with no subscriptions or hidden fees.
 
-| Model | Type | Price (USD) |
-|-------|------|-------------|
-| GPT-Image-1 | Image | $0.50 |
-| Ideogram | Image | $0.30 |
-| Grok-Image | Image | $0.40 |
-| Sora | Video | $2.00 |
-| Grok-Video | Video | $1.50 |
-| Veo 3.1 | Video | $1.80 |
+## API Integration
 
-Prices can be customized in the `.env.local` file.
+### Supported Models
 
-## 🔐 API Integration
-
-### Mock Mode (Default)
-
-The platform runs in mock mode by default:
-
-- ✅ No API keys required
-- ✅ Mock images from Unsplash
-- ✅ Mock videos from Google samples
-- ✅ Simulated payment flow
-- ✅ Perfect for development and demos
-
-### Production Mode
-
-To enable real AI generations:
-
-#### 1. Get API Keys
-
-- [OpenAI Platform](https://platform.openai.com/)
-- [Ideogram](https://ideogram.ai/)
-- [xAI](https://x.ai/)
-- [Google AI Studio](https://makersuite.google.com/)
-
-#### 2. Implement AI Integrations
-
-**OpenAI (GPT-Image-1)**
-```typescript
-import OpenAI from 'openai';
-
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
-});
-
-const response = await openai.images.generate({
-  model: "dall-e-3",
-  prompt: prompt,
-  n: 1,
-  size: "1024x1024"
-});
-```
+**OpenAI GPT Image 1**
+- Text-to-image generation
+- Reference image support
+- Multiple variant generation
+- 1024x1024 resolution
 
 **Ideogram**
-```typescript
-const response = await fetch('https://api.ideogram.ai/generate', {
-  method: 'POST',
-  headers: { 
-    'Authorization': `Bearer ${process.env.IDEOGRAM_API_KEY}`,
-    'Content-Type': 'application/json'
-  },
-  body: JSON.stringify({ prompt })
-});
-```
+- Multiple rendering speeds (Turbo, Balanced, Quality)
+- Art and design focused
+- High-quality outputs
 
-**xAI (Grok)**
-```typescript
-const response = await fetch('https://api.x.ai/v1/generate', {
-  method: 'POST',
-  headers: { 
-    'Authorization': `Bearer ${process.env.XAI_API_KEY}`,
-    'Content-Type': 'application/json'
-  },
-  body: JSON.stringify({ 
-    prompt, 
-    model: 'grok-image' 
-  })
-});
-```
+**Qwen VL**
+- Fast generation
+- Acceleration options (None, Regular, High)
+- Cost-effective solution
 
-**Google Gemini (Veo 3.1)**
-```typescript
-const response = await fetch('https://generativelanguage.googleapis.com/v1/models/veo-3.1:generate', {
-  method: 'POST',
-  headers: { 
-    'Authorization': `Bearer ${process.env.GOOGLE_API_KEY}`,
-    'Content-Type': 'application/json'
-  },
-  body: JSON.stringify({ prompt })
-});
-```
+**OpenAI Sora 2**
+- Text-to-video generation
+- Configurable duration (5s or 15s)
+- Professional quality output
 
-#### 3. Setup x402 Payment
+**Google Veo 3.1**
+- Text-to-video generation
+- Image-to-video support
+- Advanced motion control
 
-- Integrate with x402 blockchain protocol
-- Implement wallet connection
-- Configure USDC payments
-
-## 🚀 Deployment
+## Deployment
 
 ### Vercel (Recommended)
 
 ```bash
+# Install Vercel CLI
 npm install -g vercel
+
+# Deploy
 vercel
+
+# Add environment variables in Vercel dashboard
 ```
 
 ### Docker
 
 ```bash
-docker build -t x402-ai-platform .
-docker run -p 3000:3000 x402-ai-platform
+# Build image
+docker build -t payper402 .
+
+# Run container
+docker run -p 3000:3000 payper402
 ```
 
-## 🎨 Design System
+### Environment Setup
 
-### Colors
+Ensure all environment variables are properly configured in your deployment platform. For Vercel, add them in the project settings under "Environment Variables".
 
-- **Primary**: Cyan (#06b6d4)
-- **Secondary**: Purple (#a855f7)
-- **Accent**: Pink (#ec4899)
-- **Background**: Black (#000000)
-- **Surface**: White with opacity
+## Development
 
-### Typography
+### Code Style
 
-- **Headings**: Black weight (900)
-- **Body**: Regular weight (400)
-- **Labels**: Bold weight (700)
+The project follows standard TypeScript and React best practices:
 
-### Effects
+- Use TypeScript for type safety
+- Follow Next.js App Router conventions
+- Use Tailwind CSS for styling
+- Keep components small and focused
+- Implement proper error handling
 
-- **Glassmorphism**: backdrop-blur with opacity
-- **Gradients**: Multi-color linear gradients
-- **Shadows**: Colored shadow effects
-- **Animations**: Smooth transitions and pulse effects
-
-## 📝 Development Roadmap
-
-- [ ] Implement real API integrations (OpenAI, Ideogram, xAI, Google)
-- [ ] Integrate x402 payment protocol with blockchain
-- [ ] Add user history (optional, local storage only)
-- [ ] Implement rate limiting
-- [ ] Add advanced generation options
-- [ ] Implement batch generation
-- [ ] Add image-to-image and video-to-video features
-- [ ] Multi-language support
-- [ ] Mobile app (React Native)
-
-## 🐛 Troubleshooting
-
-### Port 3000 already in use
+### Testing
 
 ```bash
+# Run type checking
+npm run type-check
+
+# Run linting
+npm run lint
+```
+
+## Roadmap
+
+**Current Features**
+- 5 AI models for image and video generation
+- Real-time generation progress tracking
+- Supabase cloud storage integration
+- Multi-variant support
+- Batch download with ZIP
+
+**Planned Features**
+- Additional AI models
+- User generation history
+- Advanced editing options
+- API access for developers
+- Mobile application
+- Social sharing features
+
+## Troubleshooting
+
+### Common Issues
+
+**Port already in use**
+```bash
+# Use different port
 PORT=3001 npm run dev
 ```
 
-### TypeScript errors
-
+**TypeScript errors**
 ```bash
+# Clear cache and reinstall
 rm -rf .next node_modules
 npm install
-npm run dev
 ```
 
-### Styles not loading
+**API errors**
+- Verify all API keys are valid
+- Check API rate limits
+- Ensure environment variables are set correctly
 
-Restart the dev server (Ctrl+C, then `npm run dev`)
+**Supabase connection issues**
+- Verify Supabase URL and keys
+- Check project is active
+- Ensure storage bucket is configured
 
-## 📚 Documentation
+## Contributing
 
-- [Getting Started Guide](./GETTING_STARTED.md)
-- [API Documentation](./docs/API.md) (coming soon)
-- [Payment Integration](./docs/PAYMENT.md) (coming soon)
+Contributions are welcome! Please follow these steps:
 
-## 🤝 Contributing
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+Please ensure your code follows the existing style and includes appropriate tests.
 
-## 📄 License
+## Security
 
-MIT License - feel free to use this project for commercial purposes.
+If you discover a security vulnerability, please email security@payper402.com instead of using the issue tracker.
 
-## 🌐 Links
+## License
 
-- **Website**: [x402.ai](https://x402.ai) (coming soon)
-- **Twitter**: [@x402ai](https://twitter.com/x402ai) (coming soon)
-- **Discord**: [Join our community](https://discord.gg/x402) (coming soon)
+MIT License
 
-## 💡 Why x402?
+Copyright (c) 2025 PayPer402
 
-The x402 protocol revolutionizes micro-payments by:
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-- **Eliminating friction**: No sign-ups or subscriptions
-- **Enabling AI agents**: Machines can pay directly
-- **Ensuring fairness**: Pay only for what you use
-- **Providing transparency**: Blockchain-verified transactions
-- **Future-proofing**: Built for the AI-first economy
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+## Support
+
+For support, please:
+- Open an issue on GitHub
+- Check existing documentation
+- Review closed issues for solutions
+
+## Acknowledgments
+
+- OpenAI for GPT Image and Sora 2
+- Google for Veo 3.1
+- Ideogram for their image generation API
+- Qwen for their VL model
+- Supabase for cloud storage
+- Vercel for hosting platform
+
+## Links
+
+- Repository: [https://github.com/Russioo/PayPer402](https://github.com/Russioo/PayPer402)
+- Issues: [https://github.com/Russioo/PayPer402/issues](https://github.com/Russioo/PayPer402/issues)
 
 ---
 
-**Built with ❤️ using Next.js, TypeScript, and the x402 Protocol**
+Built with Next.js, TypeScript, and the HTTP 402 Protocol
