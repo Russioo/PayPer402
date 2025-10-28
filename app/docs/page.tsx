@@ -112,26 +112,78 @@ export default function DocsPage() {
 
               {/* Payment System */}
               <section>
-                <h2 className="text-4xl font-light text-black mb-6">Payment System</h2>
+                <h2 className="text-4xl font-light text-black mb-6">HTTP 402 Payment Protocol</h2>
                 <div className="space-y-4 text-black/40 leading-relaxed">
                   <p>
-                    PayPer402 uses the HTTP 402 Payment Required protocol for instant micro-payments.
+                    PayPer402 implements the <strong className="text-black/60">real HTTP 402 Payment Required protocol</strong> with Solana blockchain payments.
                   </p>
+                  
                   <div className="bg-black/5 p-6 space-y-4">
-                    <h3 className="text-xl font-medium text-black">Features</h3>
+                    <h3 className="text-xl font-medium text-black">How It Works</h3>
+                    <ol className="list-decimal list-inside space-y-3 ml-4">
+                      <li><strong className="text-black/60">Connect Wallet:</strong> First connect your Solana wallet (Phantom, Solflare, etc.)</li>
+                      <li><strong className="text-black/60">Start Generation:</strong> Select model and write your prompt</li>
+                      <li><strong className="text-black/60">HTTP 402 Response:</strong> Server returns 402 Payment Required with payment details</li>
+                      <li><strong className="text-black/60">Pay with USDC:</strong> Approve USDC transfer in your wallet on Solana network</li>
+                      <li><strong className="text-black/60">On-chain Verification:</strong> Backend verifies transaction on Solana blockchain</li>
+                      <li><strong className="text-black/60">Generation Starts:</strong> Once verified, AI generation begins</li>
+                    </ol>
+                  </div>
+
+                  <div className="bg-black/5 p-6 space-y-4">
+                    <h3 className="text-xl font-medium text-black">Payment Features</h3>
                     <ul className="list-disc list-inside space-y-2 ml-4">
-                      <li>No login or account required</li>
-                      <li>No subscription or monthly fees</li>
-                      <li>Pay with USDC cryptocurrency</li>
-                      <li>Instant payment verification</li>
-                      <li>Blockchain-secured transactions</li>
-                      <li>AI-agent compatible</li>
+                      <li><strong className="text-black/60">Real HTTP 402:</strong> Follows HTTP 402 specification with WWW-Authenticate header</li>
+                      <li><strong className="text-black/60">Blockchain Verified:</strong> All payments verified on-chain via Solana RPC</li>
+                      <li><strong className="text-black/60">USDC on Solana:</strong> Pay with USDC SPL token on Solana Mainnet</li>
+                      <li><strong className="text-black/60">Instant Confirmation:</strong> Transaction confirmed in seconds</li>
+                      <li><strong className="text-black/60">Transparent:</strong> View all transactions on Solscan.io</li>
+                      <li><strong className="text-black/60">No Subscription:</strong> Pay only for what you generate</li>
                     </ul>
                   </div>
-                  <p>
-                    When you click generate, the system returns an HTTP 402 response with payment details. 
-                    Complete payment via USDC, and your content generates immediately.
-                  </p>
+
+                  <h3 className="text-2xl font-light text-black mt-8 mb-4">HTTP 402 Response Format</h3>
+                  <div className="bg-black/5 p-6 font-mono text-sm">
+                    <code className="text-black/60">
+                      HTTP/1.1 402 Payment Required<br/>
+                      WWW-Authenticate: Bearer realm="PayPer402", amount="0.40", currency="USDC"<br/>
+                      <br/>
+                      {'{'}<br/>
+                      &nbsp;&nbsp;"error": "Payment Required",<br/>
+                      &nbsp;&nbsp;"message": "This resource requires payment",<br/>
+                      &nbsp;&nbsp;"generationId": "gen_1234567890_abc123",<br/>
+                      &nbsp;&nbsp;"paymentRequired": true,<br/>
+                      &nbsp;&nbsp;"amount": 0.40,<br/>
+                      &nbsp;&nbsp;"currency": "USDC",<br/>
+                      &nbsp;&nbsp;"network": "Solana",<br/>
+                      &nbsp;&nbsp;"model": "GPT Image 1"<br/>
+                      {'}'}
+                    </code>
+                  </div>
+
+                  <h3 className="text-2xl font-light text-black mt-8 mb-4">Solana Transaction Details</h3>
+                  <div className="bg-black/5 p-6 space-y-2">
+                    <div className="flex justify-between">
+                      <span className="font-medium text-black">Network:</span>
+                      <span>Solana Mainnet Beta</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="font-medium text-black">Token:</span>
+                      <span>USDC (SPL Token)</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="font-medium text-black">Transaction Fee:</span>
+                      <span>~0.000005 SOL</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="font-medium text-black">Confirmation:</span>
+                      <span>~1-3 seconds</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="font-medium text-black">Explorer:</span>
+                      <span className="font-mono text-xs">solscan.io</span>
+                    </div>
+                  </div>
                 </div>
               </section>
 
@@ -209,13 +261,54 @@ export default function DocsPage() {
                   </div>
 
                   <div className="bg-black/5 p-6">
-                    <h3 className="text-xl font-medium text-black mb-3">Features</h3>
+                    <h3 className="text-xl font-medium text-black mb-3">Platform Features</h3>
                     <ul className="list-disc list-inside space-y-2 ml-4">
-                      <li>Create variations of existing generations</li>
+                      <li>Wallet-gated access (Solana wallet required)</li>
                       <li>Download high-resolution outputs</li>
                       <li>Share directly to social platforms</li>
                       <li>No watermarks on outputs</li>
+                      <li>Real-time generation progress tracking</li>
+                      <li>Multi-image generation support (up to 4)</li>
                     </ul>
+                  </div>
+                </div>
+              </section>
+
+              {/* Wallet Setup */}
+              <section>
+                <h2 className="text-4xl font-light text-black mb-6">Wallet Setup</h2>
+                <div className="space-y-4 text-black/40 leading-relaxed">
+                  <p>
+                    To use PayPer402, you need a Solana wallet with USDC.
+                  </p>
+                  
+                  <div className="bg-black/5 p-6 space-y-4">
+                    <h3 className="text-xl font-medium text-black">Supported Wallets</h3>
+                    <ul className="list-disc list-inside space-y-2 ml-4">
+                      <li><strong className="text-black/60">Phantom:</strong> Most popular Solana wallet (recommended)</li>
+                      <li><strong className="text-black/60">Solflare:</strong> Feature-rich wallet with staking</li>
+                      <li><strong className="text-black/60">Coinbase Wallet:</strong> From Coinbase exchange</li>
+                    </ul>
+                  </div>
+
+                  <h3 className="text-2xl font-light text-black mt-8 mb-4">Setup Guide</h3>
+                  <div className="space-y-4">
+                    <div className="bg-black/5 p-6">
+                      <h4 className="font-medium text-black mb-2">1. Install Wallet</h4>
+                      <p>Download Phantom from phantom.app or as a browser extension</p>
+                    </div>
+                    <div className="bg-black/5 p-6">
+                      <h4 className="font-medium text-black mb-2">2. Buy SOL & USDC</h4>
+                      <p>Buy SOL (for transaction fees) and USDC (for payments) from an exchange like Coinbase or Binance</p>
+                    </div>
+                    <div className="bg-black/5 p-6">
+                      <h4 className="font-medium text-black mb-2">3. Send to Wallet</h4>
+                      <p>Send SOL and USDC to your Solana wallet address</p>
+                    </div>
+                    <div className="bg-black/5 p-6">
+                      <h4 className="font-medium text-black mb-2">4. Connect & Generate</h4>
+                      <p>Connect wallet on PayPer402 and start generating!</p>
+                    </div>
                   </div>
                 </div>
               </section>

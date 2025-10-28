@@ -2,60 +2,23 @@
 @tailwind components;
 @tailwind utilities;
 
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
+:root {
+  --background: #ffffff;
+  --foreground: #000000;
 }
 
 body {
-  font-family: var(--font-inter), -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  background: #ffffff;
-  color: #000000;
+  color: var(--foreground);
+  background: var(--background);
+  font-family: var(--font-inter), Arial, Helvetica, sans-serif;
 }
 
-html {
-  scroll-behavior: smooth;
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
 }
 
-::-webkit-scrollbar {
-  width: 8px;
-}
-
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.1);
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 0, 0, 0.2);
-}
-
-::selection {
-  background: #000000;
-  color: #ffffff;
-}
-
-::-moz-selection {
-  background: #000000;
-  color: #ffffff;
-}
-
-*:focus-visible {
-  outline: 1px solid rgba(0, 0, 0, 0.2);
-  outline-offset: 2px;
-}
-
-*:focus:not(:focus-visible) {
-  outline: none;
-}
-
-/* Animations */
 @keyframes fade-in {
   from {
     opacity: 0;
@@ -77,9 +40,18 @@ html {
 }
 
 .animate-fade-in {
-  animation: fade-in 1s ease-out;
+  animation: fade-in 1s ease-out forwards;
 }
 
 .animate-slide-up {
-  animation: slide-up 0.8s ease-out;
+  animation: slide-up 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+/* Wallet Adapter - Only make button black */
+.wallet-adapter-button-trigger {
+  background-color: #000000 !important;
+}
+
+.wallet-adapter-button-trigger:hover:not([disabled]) {
+  background-color: rgba(0, 0, 0, 0.9) !important;
 }

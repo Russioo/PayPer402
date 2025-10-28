@@ -1,331 +1,333 @@
-# PayPer402
+# PayPer402 - AI Generation via HTTP 402 Protocol
 
-Professional AI image and video generation platform with pay-per-use pricing via HTTP 402 Payment Protocol.
+> Professional AI video and image generation powered by Sora 2, Veo 3.1, GPT Image, Ideogram, Qwen og Kling AI. Betal kun for hvad du bruger via Solana USDC betalinger.
 
-![Next.js](https://img.shields.io/badge/Next.js-14-black?style=flat-square&logo=next.js)
-![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?style=flat-square&logo=typescript)
-![Tailwind CSS](https://img.shields.io/badge/Tailwind-3-38bdf8?style=flat-square&logo=tailwindcss)
+![PayPer402](https://img.shields.io/badge/Protocol-HTTP%20402-black)
+![Solana](https://img.shields.io/badge/Blockchain-Solana-purple)
+![USDC](https://img.shields.io/badge/Payment-USDC-blue)
 
-## Overview
+## 🚀 Features
 
-PayPer402 is a modern web application that enables users to generate high-quality images and videos using state-of-the-art AI models. Built on the HTTP 402 Payment Protocol, it offers a seamless pay-per-use experience without subscriptions or complicated billing.
+- **5+ AI Modeller**: Sora 2, Veo 3.1, GPT Image 1, Ideogram, Qwen, Kling AI
+- **Solana Betalinger**: Rigtige USDC betalinger på Solana blockchain
+- **Wallet Integration**: Support for Phantom, Solflare, Coinbase Wallet
+- **Pay-per-use**: Betal kun for det du genererer
+- **Real-time Generation**: Live progress tracking
+- **Multi-image Support**: Generer op til 4 billeder ad gangen
 
-Generate professional content with leading AI models including Sora 2, Veo 3.1, GPT Image, Ideogram, and Qwen VL - pay only for what you use, starting from $0.03 per generation.
-
-## Features
-
-### AI Models
-
-**Image Generation**
-- **GPT Image 1** (OpenAI) - Advanced image generation with optional reference images
-- **Ideogram** - High-quality art generation with multiple rendering speeds
-- **Qwen VL** - Fast image generation with acceleration options
-
-**Video Generation**
-- **Sora 2** (OpenAI) - Professional text-to-video generation
-- **Veo 3.1** (Google) - Advanced video generation with image-to-video support
-
-### Platform Features
-
-- **Pay-Per-Use**: No subscriptions, pay only for completed generations
-- **HTTP 402 Protocol**: Native integration with payment-required standard
-- **Real-time Progress**: Live generation status and time estimates
-- **Multiple Outputs**: Support for batch generation and variants
-- **Cloud Storage**: Integrated Supabase storage for all generated content
-- **Modern UI**: Clean, minimalist design with smooth animations
-- **Responsive Design**: Optimized for desktop, tablet, and mobile devices
-
-## Tech Stack
-
-- **Framework**: Next.js 14 (App Router)
-- **Language**: TypeScript
-- **Styling**: Tailwind CSS
-- **Storage**: Supabase
-- **Icons**: Lucide React
-- **HTTP Client**: Axios
-- **File Handling**: JSZip for batch downloads
-
-## Getting Started
-
-### Prerequisites
-
-- Node.js 18+ and npm
-- Supabase account and project
-- API keys for AI models (OpenAI, Ideogram, Qwen, Google)
-
-### Installation
+## 📦 Installation
 
 ```bash
-# Clone the repository
-git clone https://github.com/Russioo/PayPer402.git
-cd PayPer402
+# Clone repository
+git clone https://github.com/yourusername/payper402.git
+cd payper402
 
-# Install dependencies
+# Installer dependencies
 npm install
 
-# Configure environment variables
-cp .env.local.example .env.local
-```
+# Setup environment variables
+cp .env.example .env.local
+# Rediger .env.local med dine API keys
 
-### Environment Variables
-
-Create a `.env.local` file with the following variables:
-
-```env
-# Supabase
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
-
-# AI Model APIs
-OPENAI_API_KEY=your_openai_api_key
-IDEOGRAM_API_KEY=your_ideogram_api_key
-QWEN_API_KEY=your_qwen_api_key
-GOOGLE_API_KEY=your_google_api_key
-
-# Payment (Optional)
-PAYMENT_WALLET_ADDRESS=your_wallet_address
-```
-
-### Development
-
-```bash
 # Start development server
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) to view the application.
+## ⚙️ Konfiguration
 
-### Build for Production
+### 1. API Keys
+
+Opret en `.env.local` fil med:
+
+```env
+# Supabase (for storage)
+NEXT_PUBLIC_SUPABASE_URL=din_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=din_supabase_key
+SUPABASE_SERVICE_ROLE_KEY=din_service_role_key
+
+# OpenAI (for GPT Image 1)
+OPENAI_API_KEY=din_openai_key
+
+# Ideogram
+IDEOGRAM_API_KEY=din_ideogram_key
+
+# Qwen (Alibaba)
+QWEN_API_KEY=din_qwen_key
+QWEN_API_BASE_URL=https://dashscope.aliyuncs.com/api/v1
+
+# Kling AI
+KLING_API_KEY=din_kling_key
+
+# Veo (Google)
+VEO_API_KEY=din_veo_key
+
+# Sora (OpenAI)
+SORA_API_KEY=din_sora_key
+```
+
+### 2. Solana Payment Setup
+
+**VIGTIGT**: Opdater payment wallet address i `lib/solana-payment.ts`:
+
+```typescript
+export const PAYMENT_WALLET_ADDRESS = new PublicKey('DIN_WALLET_ADDRESS_HER');
+```
+
+Se [SOLANA_SETUP.md](./SOLANA_SETUP.md) for komplet guide til Solana integration.
+
+### 3. Supabase Storage Setup
+
+1. Opret en Supabase project på [supabase.com](https://supabase.com)
+2. Opret en storage bucket kaldet `generations`
+3. Sæt bucket til public
+4. Opdater `.env.local` med dine credentials
+
+## 🏗️ Arkitektur
+
+### Frontend
+- **Next.js 14** med App Router
+- **React 18** med hooks
+- **Tailwind CSS** til styling
+- **Solana Wallet Adapter** til wallet integration
+- **Axios** til API calls
+
+### Backend
+- **Next.js API Routes** (serverless functions)
+- **Solana Web3.js** til blockchain interaction
+- **SPL Token** til USDC transfers
+- **Supabase** til file storage
+
+### Blockchain
+- **Solana Mainnet Beta** for betalinger
+- **USDC** (SPL Token) som payment method
+- **On-chain verification** af alle transaktioner
+
+## 🔄 HTTP 402 Payment Flow
+
+PayPer402 implementerer den rigtige HTTP 402 Payment Required protocol:
+
+```
+1. User connects Solana wallet
+   ↓
+2. User selects AI model & enters prompt
+   ↓
+3. POST /api/generate → Server returnerer HTTP 402 Payment Required
+   {
+     "error": "Payment Required",
+     "amount": 0.40,
+     "currency": "USDC",
+     "network": "Solana"
+   }
+   ↓
+4. Client viser payment modal med betalingsdetaljer
+   ↓
+5. User godkender USDC transfer i wallet
+   ↓
+6. Transaction sendes til Solana blockchain
+   ↓
+7. Client modtager transaction signature
+   ↓
+8. POST /api/generate MED paymentSignature
+   ↓
+9. Backend verificerer payment on-chain via Solana RPC
+   ↓
+10. Hvis verificeret → HTTP 200 OK → AI generation starter
+   ↓
+11. Result displayed when ready
+```
+
+### HTTP 402 Response Example
+
+```http
+HTTP/1.1 402 Payment Required
+WWW-Authenticate: Bearer realm="PayPer402", amount="0.40", currency="USDC", network="Solana"
+Content-Type: application/json
+
+{
+  "error": "Payment Required",
+  "message": "This resource requires payment",
+  "generationId": "gen_1234567890_abc123",
+  "paymentRequired": true,
+  "amount": 0.40,
+  "currency": "USDC",
+  "network": "Solana",
+  "model": "GPT Image 1"
+}
+```
+
+### Payment Verification
+
+Alle betalinger verificeres on-chain:
+
+```typescript
+// Backend verificerer transaction på Solana
+const connection = new Connection(clusterApiUrl('mainnet-beta'));
+const isPaid = await verifyUSDCPayment(
+  connection, 
+  paymentSignature, 
+  expectedAmount
+);
+
+if (!isPaid) {
+  return 402; // Payment verification failed
+}
+
+// Start generation...
+```
+
+## 💡 Understøttede AI Modeller
+
+| Model | Type | Pris | Features |
+|-------|------|------|----------|
+| **Sora 2** | Video | $5.00 | 5-15s video, 720p |
+| **Veo 3.1** | Video | $0.10 | Text/image-to-video |
+| **GPT Image 1** | Image | $0.40 | 1-4 images, reference support |
+| **Ideogram** | Image | $0.08 | 3 quality modes, style options |
+| **Qwen** | Image | $0.03 | Fast, acceleration modes |
+| **Kling AI** | Video | $0.25 | High quality video |
+
+## 🔐 Sikkerhed
+
+- ✅ Wallet authentication required
+- ✅ On-chain payment verification
+- ✅ No private keys stored
+- ✅ Serverless API endpoints
+- ✅ Environment variable protection
+
+**Note**: Se [SOLANA_SETUP.md](./SOLANA_SETUP.md) for anbefalinger til produktion.
+
+## 🛠️ Development
 
 ```bash
-# Create production build
+# Start development server
+npm run dev
+
+# Build for production
 npm run build
 
 # Start production server
 npm start
+
+# Run linter
+npm run lint
 ```
 
-## Project Structure
+## 📁 Projektstruktur
 
 ```
-PayPer402/
+payper402/
 ├── app/
-│   ├── api/
-│   │   ├── generate/
-│   │   │   ├── route.ts          # Initialize generation
-│   │   │   └── [id]/route.ts     # Poll generation status
-│   │   ├── upload/route.ts       # File upload handler
-│   │   ├── payment/
-│   │   │   └── verify/route.ts   # Payment verification
-│   │   └── callback/route.ts     # Payment callbacks
-│   ├── page.tsx                   # Main application page
-│   ├── about/page.tsx            # About page
-│   ├── docs/page.tsx             # Documentation page
-│   ├── layout.tsx                # Root layout
-│   └── globals.css               # Global styles
-├── components/
-│   ├── GenerationForm.tsx        # Prompt input and options
-│   ├── GenerationProgress.tsx    # Real-time progress display
-│   ├── ResultDisplay.tsx         # Result viewer with download
-│   ├── PaymentModal.tsx          # 402 payment interface
-│   ├── ModelCard.tsx             # AI model selector
-│   ├── Header.tsx                # Navigation header
-│   ├── InteractiveBackground.tsx # Animated background
-│   └── Toast.tsx                 # Notification system
-├── lib/
-│   ├── models.ts                 # AI model definitions
-│   ├── openai-image.ts           # OpenAI integration
-│   ├── ideogram-ai.ts            # Ideogram integration
-│   ├── qwen-ai.ts                # Qwen integration
-│   ├── veo-ai.ts                 # Veo integration
-│   ├── kie-ai.ts                 # Kling AI integration
-│   ├── supabase.ts               # Supabase client
-│   ├── supabase-helpers.ts       # Storage helpers
-│   ├── storage.ts                # File storage utilities
-│   └── payment.ts                # Payment logic
-├── types/
-│   └── index.ts                  # TypeScript definitions
-└── public/                       # Static assets
+│   ├── api/              # API routes
+│   │   ├── generate/     # Generation endpoints
+│   │   ├── payment/      # Payment verification
+│   │   └── upload/       # File upload
+│   ├── about/            # About page
+│   ├── docs/             # Documentation page
+│   ├── layout.tsx        # Root layout
+│   ├── page.tsx          # Home page
+│   └── globals.css       # Global styles
+├── components/           # React components
+│   ├── WalletProvider.tsx
+│   ├── Header.tsx
+│   ├── PaymentModal.tsx
+│   ├── GenerationForm.tsx
+│   └── ...
+├── lib/                  # Utilities
+│   ├── solana-payment.ts # Solana integration
+│   ├── models.ts         # AI model configs
+│   ├── openai-image.ts   # OpenAI integration
+│   ├── ideogram-ai.ts    # Ideogram integration
+│   ├── qwen-ai.ts        # Qwen integration
+│   ├── veo-ai.ts         # Veo integration
+│   └── ...
+├── types/                # TypeScript types
+└── public/               # Static files
 ```
 
-## Pricing
+## 🚀 Deployment
 
-| Model | Type | Price (USD) |
-|-------|------|-------------|
-| 4o Image | Image | $0.042 |
-| Ideogram V3 | Image | $0.066 |
-| Qwen | Image | $0.03 |
-| Sora 2 | Video | $0.21 |
-| Veo 3.1 | Video | $0.36 |
-
-All prices are pay-per-generation with no subscriptions or hidden fees.
-
-## API Integration
-
-### Supported Models
-
-**OpenAI GPT Image 1**
-- Text-to-image generation
-- Reference image support
-- Multiple variant generation
-- 1024x1024 resolution
-
-**Ideogram**
-- Multiple rendering speeds (Turbo, Balanced, Quality)
-- Art and design focused
-- High-quality outputs
-
-**Qwen VL**
-- Fast generation
-- Acceleration options (None, Regular, High)
-- Cost-effective solution
-
-**OpenAI Sora 2**
-- Text-to-video generation
-- Configurable duration (5s or 15s)
-- Professional quality output
-
-**Google Veo 3.1**
-- Text-to-video generation
-- Image-to-video support
-- Advanced motion control
-
-## Deployment
-
-### Vercel (Recommended)
+### Vercel (Anbefalet)
 
 ```bash
 # Install Vercel CLI
-npm install -g vercel
+npm i -g vercel
 
 # Deploy
 vercel
 
-# Add environment variables in Vercel dashboard
+# Deploy til produktion
+vercel --prod
 ```
 
-### Docker
+### Environment Variables på Vercel
 
-```bash
-# Build image
-docker build -t payper402 .
+Tilføj alle environment variables fra `.env.local` i Vercel dashboard under Settings → Environment Variables.
 
-# Run container
-docker run -p 3000:3000 payper402
-```
+**Vigtig**: Husk at sætte `PAYMENT_WALLET_ADDRESS` i `lib/solana-payment.ts` før deployment.
 
-### Environment Setup
+## 📚 Dokumentation
 
-Ensure all environment variables are properly configured in your deployment platform. For Vercel, add them in the project settings under "Environment Variables".
+- **[HTTP 402 Protocol Guide](./HTTP_402_GUIDE.md)** - Komplet guide til HTTP 402 implementation
+- **[Solana Setup Guide](./SOLANA_SETUP.md)** - Komplet guide til Solana integration
+- [Getting Started](./GETTING_STARTED.md) - Quick start guide
+- [Quick Start](./QUICK_START.md) - Hurtig opsætning
 
-## Development
+### Payment Implementation
 
-### Code Style
+PayPer402 bruger **rigtig HTTP 402 protocol**:
 
-The project follows standard TypeScript and React best practices:
+1. **402 Response**: API returnerer 402 når betaling mangler
+2. **On-chain Verification**: Alle betalinger verificeres på Solana blockchain
+3. **Retry med Payment**: Client sender request igen med payment signature
+4. **Generation Start**: Ved verificeret betaling starter generation
 
-- Use TypeScript for type safety
-- Follow Next.js App Router conventions
-- Use Tailwind CSS for styling
-- Keep components small and focused
-- Implement proper error handling
+Se [HTTP_402_GUIDE.md](./HTTP_402_GUIDE.md) for fuld implementation guide.
 
-### Testing
+## 🤝 Contributing
 
-```bash
-# Run type checking
-npm run type-check
+Contributions er velkomne! 
 
-# Run linting
-npm run lint
-```
+1. Fork projektet
+2. Opret en feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit dine ændringer (`git commit -m 'Add some AmazingFeature'`)
+4. Push til branchen (`git push origin feature/AmazingFeature`)
+5. Åbn en Pull Request
 
-## Roadmap
+## 📄 License
 
-**Current Features**
-- 5 AI models for image and video generation
-- Real-time generation progress tracking
-- Supabase cloud storage integration
-- Multi-variant support
-- Batch download with ZIP
+Dette projekt er licenseret under MIT License - se [LICENSE](LICENSE) filen for detaljer.
 
-**Planned Features**
-- Additional AI models
-- User generation history
-- Advanced editing options
-- API access for developers
-- Mobile application
-- Social sharing features
+## ⚠️ Disclaimer
 
-## Troubleshooting
+Dette er et demo projekt der viser HTTP 402 protocol med Solana betalinger. 
 
-### Common Issues
+For produktion brug:
+- Implementer fuld payment verification
+- Tilføj database logging
+- Implementer error handling & retries
+- Tilføj monitoring & alerting
+- Implementer refund system
+- Test grundigt på testnet først
 
-**Port already in use**
-```bash
-# Use different port
-PORT=3001 npm run dev
-```
+## 💬 Support
 
-**TypeScript errors**
-```bash
-# Clear cache and reinstall
-rm -rf .next node_modules
-npm install
-```
+Har du spørgsmål eller problemer?
 
-**API errors**
-- Verify all API keys are valid
-- Check API rate limits
-- Ensure environment variables are set correctly
+- 📧 Email: support@payper402.com
+- 🐛 Issues: [GitHub Issues](https://github.com/yourusername/payper402/issues)
 
-**Supabase connection issues**
-- Verify Supabase URL and keys
-- Check project is active
-- Ensure storage bucket is configured
+## 🎯 Roadmap
 
-## Contributing
-
-Contributions are welcome! Please follow these steps:
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-Please ensure your code follows the existing style and includes appropriate tests.
-
-## Security
-
-If you discover a security vulnerability, please email security@payper402.com instead of using the issue tracker.
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## Support
-
-For support, please:
-- Open an issue on GitHub
-- Check existing documentation
-- Review closed issues for solutions
-
-## Acknowledgments
-
-- OpenAI for GPT Image and Sora 2
-- Google for Veo 3.1
-- Ideogram for their image generation API
-- Qwen for their VL model
-- Supabase for cloud storage
-- Vercel for hosting platform
-
-## Links
-
-- Repository: [https://github.com/Russioo/PayPer402](https://github.com/Russioo/PayPer402)
-- Issues: [https://github.com/Russioo/PayPer402/issues](https://github.com/Russioo/PayPer402/issues)
+- [x] Solana wallet integration
+- [x] USDC payment support
+- [x] Multi-AI model support
+- [ ] Database for transaction logging
+- [ ] Admin dashboard
+- [ ] Refund system
+- [ ] Subscription plans
+- [ ] API for developers
+- [ ] Mobile app
 
 ---
 
-Built with Next.js, TypeScript, and the HTTP 402 Protocol
+**Made with ❤️ using Next.js, Solana & AI**

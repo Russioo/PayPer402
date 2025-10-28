@@ -1,39 +1,57 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { verifyPayment } from '@/lib/payment';
+import { Connection, clusterApiUrl } from '@solana/web3.js';
+import { verifyUSDCPayment } from '@/lib/solana-payment';
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { paymentId, generationId } = body;
+    const { signature, generationId, amount } = body;
 
-    if (!paymentId || !generationId) {
+    if (!signature || !generationId) {
       return NextResponse.json(
-        { error: 'Payment ID and generation ID are required' },
+        { error: 'Signature and generation ID are required' },
         { status: 400 }
       );
     }
 
-    // Verificer betaling med x402
-    const isPaid = await verifyPayment(paymentId);
+    console.log('🔍 Verificerer Solana betaling...');
+    console.log('Signature:', signature);
+    console.log('Generation ID:', generationId);
+    console.log('Expected amount:', amount, 'USDC');
+
+    // Opret connection til Solana - use better RPC
+    const rpcUrl = process.env.NEXT_PUBLIC_SOLANA_RPC_URL || 
+                   'https://mainnet.helius-rpc.com/?api-key=demo' || 
+                   clusterApiUrl('mainnet-beta');
+    const connection = new Connection(rpcUrl, 'confirmed');
+
+    // Verificer betaling on-chain
+    const isPaid = await verifyUSDCPayment(connection, signature, amount);
 
     if (isPaid) {
+      console.log('✅ Betaling verificeret!');
       return NextResponse.json({
         success: true,
         paid: true,
         generationId,
-        message: 'Payment verified - generation started',
+        signature,
+        message: 'Payment verified on Solana - generation started',
       });
     } else {
+      console.log('❌ Betaling kunne ikke verificeres');
       return NextResponse.json({
         success: false,
         paid: false,
-        message: 'Payment not found or not completed',
-      });
+        message: 'Payment not found or not completed on Solana',
+      }, { status: 402 });
     }
-  } catch (error) {
-    console.error('Payment verification failed:', error);
+  } catch (error: any) {
+    console.error('❌ Payment verification failed:', error);
     return NextResponse.json(
-      { error: 'Could not verify payment' },
+      { 
+        error: 'Could not verify payment',
+        details: error.message 
+      },
       { status: 500 }
     );
   }

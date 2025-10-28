@@ -11,8 +11,13 @@ import GenerationProgress from '@/components/GenerationProgress';
 import InteractiveBackground from '@/components/InteractiveBackground';
 import { imageModels, videoModels } from '@/lib/models';
 import Link from 'next/link';
+import { useWallet } from '@solana/wallet-adapter-react';
+import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
+import { Wallet } from 'lucide-react';
 
 export default function Home() {
+  const { connected, publicKey } = useWallet();
+  
   const [activeTab, setActiveTab] = useState<'image' | 'video'>('image');
   const [selectedModel, setSelectedModel] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -54,12 +59,19 @@ export default function Home() {
 
   const handleGenerate = async (prompt: string, options?: any) => {
     if (!selectedModel) return;
+    
+    // Check wallet connection
+    if (!connected || !publicKey) {
+      alert('Please connect your wallet first to generate!');
+      return;
+    }
 
     setIsLoading(true);
     setResult(null);
     setGenerationProgress({ elapsedTime: 0, status: 'pending', estimatedTime: 150 });
 
     try {
+      // Forsøg at starte generering (vil returnere 402 hvis ikke betalt)
       const response = await axios.post('/api/generate', {
         model: selectedModel,
         prompt,
@@ -180,25 +192,95 @@ export default function Home() {
     }
   };
 
-  const handlePaymentComplete = async () => {
+  const handlePaymentComplete = async (signature: string) => {
     if (!paymentData) return;
 
+    console.log('💳 Payment completed with signature:', signature);
     setIsLoading(true);
+    setShowPaymentModal(false);
 
     try {
-      const response = await axios.get(
-        `/api/generate/${paymentData.generationId}`
-      );
+      console.log('✅ Starter generering med betalt signature...');
       
-      setResult({
-        type: activeTab,
-        url: response.data.result,
+      // Nu sender vi generation request MED payment signature
+      const response = await axios.post('/api/generate', {
+        model: selectedModel,
         prompt: paymentData.prompt,
-        modelName: paymentData.modelName,
+        type: activeTab,
+        options: {},
+        paymentSignature: signature, // Send signature med request
       });
-    } catch (error) {
-      console.error('Could not fetch result:', error);
-    } finally {
+
+      if (response.data.success) {
+        console.log('✅ Generering startet!');
+        
+        // Poll for result
+        const taskId = response.data.taskId;
+        const startTime = Date.now();
+        
+        // Estimated time based on model
+        const estimatedTime = selectedModel === 'gpt-image-1'
+          ? 120
+          : selectedModel === 'ideogram'
+          ? 60
+          : selectedModel === 'qwen'
+          ? 35
+          : selectedModel === 'veo-3.1' 
+          ? 50
+          : 150;
+        
+        setGenerationProgress({ elapsedTime: 0, status: 'processing', estimatedTime });
+
+        const timeInterval = setInterval(() => {
+          const elapsed = Math.floor((Date.now() - startTime) / 1000);
+          setGenerationProgress(prev => ({ ...prev, elapsedTime: elapsed }));
+        }, 1000);
+        
+        const pollInterval = setInterval(async () => {
+          try {
+            const resultResponse = await axios.get(`/api/generate/${taskId}?model=${selectedModel}`);
+            
+            if (resultResponse.data.success && resultResponse.data.state === 'completed') {
+              clearInterval(pollInterval);
+              clearInterval(timeInterval);
+              setGenerationProgress(prev => ({ ...prev, status: 'completed' }));
+              
+              setTimeout(() => {
+                setIsLoading(false);
+                setResult({
+                  type: activeTab,
+                  url: resultResponse.data.result,
+                  urls: resultResponse.data.resultUrls,
+                  prompt: paymentData.prompt,
+                  modelName: paymentData.modelName,
+                });
+                setPaymentData(null);
+              }, 1000);
+            } else if (resultResponse.data.state === 'failed') {
+              clearInterval(pollInterval);
+              clearInterval(timeInterval);
+              setIsLoading(false);
+              alert('Generering fejlede. Prøv igen.');
+              setPaymentData(null);
+            }
+          } catch (error) {
+            console.error('Poll error:', error);
+          }
+        }, 5000);
+
+        // Timeout efter 5 minutter
+        setTimeout(() => {
+          clearInterval(pollInterval);
+          clearInterval(timeInterval);
+          if (isLoading) {
+            setIsLoading(false);
+            alert('Generation timeout. Please try again.');
+          }
+        }, 5 * 60 * 1000);
+      }
+    } catch (error: any) {
+      console.error('Could not start generation:', error);
+      alert(error.response?.data?.message || 'Could not start generation. Contact support.');
       setIsLoading(false);
       setPaymentData(null);
     }
@@ -369,10 +451,51 @@ export default function Home() {
           <div className="max-w-7xl mx-auto">
             <div className="text-center mb-40">
               <h2 className="text-7xl font-extralight text-black mb-10 tracking-tight">Start Generating</h2>
-              <p className="text-2xl text-black/20 font-extralight">Choose your model and create</p>
+              <p className="text-2xl text-black/20 font-extralight">
+                {connected ? 'Choose your model and create' : 'Connect your wallet to get started'}
+              </p>
             </div>
 
-            <div className="grid lg:grid-cols-12 gap-24">
+            {/* Wallet Gate - if not connected */}
+            {!connected && (
+              <div className="relative">
+                <div className="absolute inset-0 z-20 flex items-center justify-center backdrop-blur-sm bg-white/60">
+                  <div className="text-center p-16 bg-white border-2 border-black/10 max-w-xl">
+                    <Wallet className="w-16 h-16 mx-auto mb-8 text-black/20" />
+                    <h3 className="text-3xl font-extralight text-black mb-6">Connect Your Wallet</h3>
+                    <p className="text-black/40 mb-10 leading-relaxed">
+                      To use PayPer402 and pay with USDC on Solana network, 
+                      you need to connect your wallet first.
+                    </p>
+                    <WalletMultiButton className="!bg-black !text-white hover:!bg-black/90 !text-base !font-medium !py-4 !px-8 !rounded-none transition-all duration-300" />
+                    <div className="mt-8 pt-8 border-t border-black/5">
+                      <p className="text-xs text-black/25 uppercase tracking-[0.2em]">
+                        Secure payment via Solana
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                {/* Blurred preview */}
+                <div className="filter blur-md pointer-events-none select-none">
+                  <div className="grid lg:grid-cols-12 gap-24">
+                    <div className="lg:col-span-6 space-y-20">
+                      <div className="h-32 bg-black/5"></div>
+                      <div className="space-y-4">
+                        <div className="h-24 bg-black/5"></div>
+                        <div className="h-24 bg-black/5"></div>
+                      </div>
+                    </div>
+                    <div className="lg:col-span-6">
+                      <div className="aspect-square bg-black/5"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Actual Generator - kun vist når connected */}
+            {connected && (
+              <div className="grid lg:grid-cols-12 gap-24">
               {/* Left */}
               <div className="lg:col-span-6 space-y-20">
                 {/* Type Selector */}
@@ -517,6 +640,7 @@ export default function Home() {
                 </div>
               </div>
             </div>
+            )}
           </div>
         </section>
 

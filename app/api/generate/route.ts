@@ -6,11 +6,23 @@ import { create4oImageTask } from '@/lib/openai-image';
 import { createIdeogramTask } from '@/lib/ideogram-ai';
 import { createQwenTask } from '@/lib/qwen-ai';
 import { generations } from '@/lib/storage';
+import { Connection, clusterApiUrl } from '@solana/web3.js';
+import { verifyUSDCPayment } from '@/lib/solana-payment';
+
+// Store for pending payments (i produktion, brug database)
+const pendingPayments = new Map<string, {
+  model: string;
+  prompt: string;
+  type: string;
+  options: any;
+  amount: number;
+  createdAt: Date;
+}>();
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { model, prompt, type, options } = body;
+    const { model, prompt, type, options, paymentSignature } = body;
 
     if (!model || !prompt || !type) {
       return NextResponse.json(
@@ -26,6 +38,73 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+
+    // ====== HTTP 402 PAYMENT REQUIRED ======
+    // Tjek om der er betalt (via payment signature)
+    if (!paymentSignature) {
+      // Generer generation ID til denne pending payment
+      const generationId = `gen_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      
+      // Gem pending generation details
+      pendingPayments.set(generationId, {
+        model,
+        prompt,
+        type,
+        options,
+        amount: modelInfo.price,
+        createdAt: new Date(),
+      });
+
+      console.log('🚫 HTTP 402: Payment Required');
+      console.log('Generation ID:', generationId);
+      console.log('Amount:', modelInfo.price, 'USDC');
+
+      // Returner HTTP 402 Payment Required
+      return new NextResponse(
+        JSON.stringify({
+          error: 'Payment Required',
+          message: 'This resource requires payment',
+          generationId,
+          paymentRequired: true,
+          amount: modelInfo.price,
+          currency: 'USDC',
+          network: 'Solana',
+          model: modelInfo.name,
+        }),
+        { 
+          status: 402,
+          headers: {
+            'Content-Type': 'application/json',
+            'WWW-Authenticate': `Bearer realm="PayPer402", amount="${modelInfo.price}", currency="USDC", network="Solana"`,
+          },
+        }
+      );
+    }
+
+    // Verificer betaling on-chain
+    console.log('💳 Verificerer betaling...');
+    console.log('Payment Signature:', paymentSignature);
+    
+    // Use better RPC endpoint
+    const rpcUrl = process.env.NEXT_PUBLIC_SOLANA_RPC_URL || 
+                   'https://mainnet.helius-rpc.com/?api-key=demo' || 
+                   clusterApiUrl('mainnet-beta');
+    const connection = new Connection(rpcUrl, 'confirmed');
+    const isPaid = await verifyUSDCPayment(connection, paymentSignature, modelInfo.price);
+
+    if (!isPaid) {
+      console.log('❌ Betaling ikke verificeret');
+      return NextResponse.json(
+        { 
+          error: 'Payment verification failed',
+          message: 'Could not verify payment on Solana blockchain',
+        },
+        { status: 402 }
+      );
+    }
+
+    console.log('✅ Betaling verificeret! Starter generering...');
+    // ====== END HTTP 402 CHECK ======
 
     // For GPT Image 1 (4o Image), create Kie.ai task immediately
     if (model === 'gpt-image-1') {
