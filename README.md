@@ -151,13 +151,13 @@ PayPer402/
 
 ## Pricing
 
-| Model | Type | Duration/Options | Price (USD) |
-|-------|------|------------------|-------------|
-| GPT Image 1 | Image | 1 image | $0.50 |
-| Ideogram | Image | 1 image | $0.30 |
-| Qwen VL | Image | 1 image | $0.03 |
-| Sora 2 | Video | 5-15 seconds | $1.50 - $2.50 |
-| Veo 3.1 | Video | ~8 seconds | $1.80 |
+| Model | Type | Price (USD) |
+|-------|------|-------------|
+| 4o Image | Image | $0.042 |
+| Ideogram V3 | Image | $0.066 |
+| Qwen | Image | $0.03 |
+| Sora 2 | Video | $0.21 |
+| Veo 3.1 | Video | $0.36 |
 
 All prices are pay-per-generation with no subscriptions or hidden fees.
 
