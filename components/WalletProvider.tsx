@@ -14,8 +14,7 @@ interface Props {
 }
 
 export const SolanaWalletProvider: FC<Props> = ({ children }) => {
-  // Client-side RPC endpoint (public, visible in browser)
-  // Uses standard Solana RPC or your own public endpoint
+  // RPC endpoint - synlig i browser men whatever
   const endpoint = useMemo(() => 
     process.env.NEXT_PUBLIC_SOLANA_RPC_URL || 
     clusterApiUrl('mainnet-beta'), 

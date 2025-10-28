@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { X, Loader2, Wallet, CheckCircle } from 'lucide-react';
+import { X, Loader2, Wallet } from 'lucide-react';
 import { useWallet, useConnection } from '@solana/wallet-adapter-react';
 import { sendUSDCPayment } from '@/lib/solana-payment';
 
@@ -124,9 +124,7 @@ export default function PaymentModal({
           <div className="mb-12 text-center">
             <div className="mb-8">
               <div className={`inline-block transition-all duration-700 ${
-                paymentStatus === 'completed' 
-                  ? 'scale-0 opacity-0' 
-                  : paymentStatus === 'processing'
+                paymentStatus === 'processing'
                   ? 'scale-110 opacity-100'
                   : 'scale-100 opacity-100'
               }`}>
@@ -139,15 +137,6 @@ export default function PaymentModal({
                 ) : (
                   <Wallet className="w-12 h-12 text-black/20" />
                 )}
-              </div>
-              
-              {/* Success checkmark */}
-              <div className={`absolute left-1/2 -translate-x-1/2 transition-all duration-700 ${
-                paymentStatus === 'completed' 
-                  ? 'scale-100 opacity-100 rotate-0' 
-                  : 'scale-0 opacity-0 -rotate-180'
-              }`}>
-                <CheckCircle className="w-12 h-12 text-green-600" />
               </div>
             </div>
 

@@ -8,6 +8,7 @@ import {
 import { 
   getAssociatedTokenAddress, 
   createTransferInstruction,
+  createAssociatedTokenAccountInstruction,
   TOKEN_PROGRAM_ID,
   ASSOCIATED_TOKEN_PROGRAM_ID,
 } from '@solana/spl-token';
@@ -68,8 +69,37 @@ export async function sendUSDCPayment(
     console.log('📦 Fra Token Account:', fromTokenAccount.toBase58());
     console.log('📦 Til Token Account:', toTokenAccount.toBase58());
 
+    // Tjek om brugerens USDC token account eksisterer
+    const fromAccountInfo = await connection.getAccountInfo(fromTokenAccount);
+    if (!fromAccountInfo) {
+      console.log('⚠️  Brugerens USDC token account eksisterer ikke!');
+      return {
+        success: false,
+        signature: '',
+        error: 'You don\'t have a USDC account. Please add USDC to your wallet first.',
+      };
+    }
+
+    // Tjek om modtagerens USDC token account eksisterer
+    const toAccountInfo = await connection.getAccountInfo(toTokenAccount);
+
     // Opret transaction
     const transaction = new Transaction();
+    
+    // Hvis modtagerens token account ikke eksisterer, opret den først
+    if (!toAccountInfo) {
+      console.log('📝 Opretter modtagers USDC token account...');
+      transaction.add(
+        createAssociatedTokenAccountInstruction(
+          payerPublicKey, // payer
+          toTokenAccount, // associated token account
+          PAYMENT_WALLET_ADDRESS, // owner
+          USDC_MINT_ADDRESS, // mint
+          TOKEN_PROGRAM_ID,
+          ASSOCIATED_TOKEN_PROGRAM_ID
+        )
+      );
+    }
     
     // Tilføj transfer instruction
     transaction.add(

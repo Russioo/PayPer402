@@ -211,6 +211,8 @@ export default function Home() {
         paymentSignature: signature, // Send signature med request
       });
 
+      console.log('📊 API Response:', response.data);
+
       if (response.data.success) {
         console.log('✅ Generering startet!');
         
@@ -277,11 +279,17 @@ export default function Home() {
             alert('Generation timeout. Please try again.');
           }
         }, 5 * 60 * 1000);
+      } else {
+        console.error('❌ Generation not started:', response.data);
+        setIsLoading(false);
+        alert('Could not start generation. Please contact support with transaction: ' + signature);
+        setPaymentData(null);
       }
     } catch (error: any) {
-      console.error('Could not start generation:', error);
-      alert(error.response?.data?.message || 'Could not start generation. Contact support.');
+      console.error('❌ Could not start generation:', error);
+      console.error('❌ Error response:', error.response?.data);
       setIsLoading(false);
+      alert(error.response?.data?.message || 'Could not start generation. Please contact support with transaction: ' + signature);
       setPaymentData(null);
     }
   };
