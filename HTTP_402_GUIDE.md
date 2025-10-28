@@ -1,10 +1,10 @@
 # HTTP 402 Payment Protocol Implementation Guide
 
-Dette dokument beskriver hvordan PayPer402 implementerer den rigtige HTTP 402 Payment Required protocol med Solana USDC betalinger.
+This document describes how PayPer402 implements the real HTTP 402 Payment Required protocol with Solana USDC payments.
 
-## 📖 HTTP 402 Protocol Oversigt
+## HTTP 402 Protocol Overview
 
-HTTP 402 Payment Required er en HTTP statuskode reserveret til fremtidige digital payment systemer. PayPer402 implementerer dette med Solana blockchain betalinger.
+HTTP 402 Payment Required is an HTTP status code reserved for future digital payment systems. PayPer402 implements this with Solana blockchain payments.
 
 ### RFC Specification
 
@@ -25,11 +25,11 @@ Content-Type: application/json
 }
 ```
 
-## 🔄 Payment Flow
+## Payment Flow
 
-### 1. Initial Request (Uden Betaling)
+### 1. Initial Request (Without Payment)
 
-Client sender en generation request:
+Client sends a generation request:
 
 ```javascript
 POST /api/generate
@@ -41,9 +41,9 @@ POST /api/generate
 }
 ```
 
-### 2. Server Returnerer 402
+### 2. Server Returns 402
 
-Server tjekker at der ikke er betalt og returnerer HTTP 402:
+Server checks that payment is missing and returns HTTP 402:
 
 ```javascript
 HTTP/1.1 402 Payment Required
@@ -60,14 +60,14 @@ WWW-Authenticate: Bearer realm="PayPer402", amount="0.40", currency="USDC", netw
 }
 ```
 
-### 3. Client Betaler via Solana
+### 3. Client Pays via Solana
 
-Client modtager 402 response og:
+Client receives 402 response and:
 
-1. Viser payment modal til bruger
-2. Bruger godkender USDC transfer i Solana wallet
-3. Transaction sendes til Solana blockchain
-4. Client modtager transaction signature
+1. Shows payment modal to user
+2. User approves USDC transfer in Solana wallet
+3. Transaction sent to Solana blockchain
+4. Client receives transaction signature
 
 ```javascript
 // Example Solana payment
@@ -80,9 +80,9 @@ const signature = await sendUSDCPayment(
 // Returns: "5j7s...xyz123" (transaction signature)
 ```
 
-### 4. Retry Request med Payment Proof
+### 4. Retry Request with Payment Proof
 
-Client sender samme request igen, MED payment signature:
+Client sends the same request again, WITH payment signature:
 
 ```javascript
 POST /api/generate
@@ -95,15 +95,15 @@ POST /api/generate
 }
 ```
 
-### 5. Server Verificerer og Starter Generation
+### 5. Server Verifies and Starts Generation
 
 Server:
 
-1. Modtager paymentSignature
-2. Verificerer transaction on-chain via Solana RPC
-3. Tjekker at payment er confirmed
-4. Starter AI generation
-5. Returnerer 200 OK med generation status
+1. Receives paymentSignature
+2. Verifies transaction on-chain via Solana RPC
+3. Checks that payment is confirmed
+4. Starts AI generation
+5. Returns 200 OK with generation status
 
 ```javascript
 HTTP/1.1 200 OK
@@ -116,7 +116,7 @@ HTTP/1.1 200 OK
 }
 ```
 
-## 💻 Implementation Detaljer
+## Implementation Details
 
 ### Backend: Generation API
 
@@ -128,7 +128,7 @@ export async function POST(request: NextRequest) {
   
   const modelInfo = getModelById(model);
   
-  // ====== HTTP 402 CHECK ======
+  // HTTP 402 CHECK
   if (!paymentSignature) {
     const generationId = `gen_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     
@@ -251,20 +251,20 @@ export async function verifyUSDCPayment(
 }
 ```
 
-## 🔐 Sikkerhed & Best Practices
+## Security & Best Practices
 
 ### 1. On-Chain Verification
 
-✅ **DO**: Verificer altid payment on-chain
+Always verify payment on-chain:
 ```typescript
 const isPaid = await verifyUSDCPayment(connection, signature, amount);
 ```
 
-❌ **DON'T**: Stol på client-side payment claims uden verification
+Never trust client-side payment claims without verification.
 
 ### 2. Idempotency
 
-For at undgå duplikerede generinger ved retries:
+To avoid duplicate generations on retries:
 
 ```typescript
 // Store completed payments
@@ -283,7 +283,7 @@ completedPayments.add(paymentSignature);
 
 ### 3. Amount Verification
 
-Udvid `verifyUSDCPayment` til at verificere nøjagtig amount:
+Extend `verifyUSDCPayment` to verify exact amount:
 
 ```typescript
 export async function verifyUSDCPayment(
@@ -296,7 +296,7 @@ export async function verifyUSDCPayment(
   // Parse token transfer instruction
   const transferAmount = parseTransferAmount(transaction);
   
-  // Verify amount matches (med tolerance for rounding)
+  // Verify amount matches (with tolerance for rounding)
   const tolerance = 0.01; // 1 cent tolerance
   return Math.abs(transferAmount - expectedAmount) < tolerance;
 }
@@ -304,7 +304,7 @@ export async function verifyUSDCPayment(
 
 ### 4. Timeout Handling
 
-Payment requests skal have timeout:
+Payment requests should have timeout:
 
 ```typescript
 pendingPayments.set(generationId, {
@@ -323,7 +323,7 @@ setInterval(() => {
 }, 60 * 1000); // Check every minute
 ```
 
-## 📊 Payment States
+## Payment States
 
 ```
 ┌─────────────┐
@@ -359,26 +359,26 @@ setInterval(() => {
 └─────────────┘
 ```
 
-## 🧪 Testing
+## Testing
 
-### Test på Devnet
+### Test on Devnet
 
 ```typescript
-// 1. Skift til devnet i alle filer
+// 1. Switch to devnet in all files
 const endpoint = clusterApiUrl('devnet');
 
-// 2. Brug devnet USDC
+// 2. Use devnet USDC
 const USDC_MINT_ADDRESS = new PublicKey('4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU');
 
-// 3. Få devnet SOL og USDC
+// 3. Get devnet SOL and USDC
 // SOL: https://faucet.solana.com/
-// USDC: (find devnet faucet eller mint selv)
+// USDC: (find devnet faucet or mint yourself)
 ```
 
 ### Test 402 Response
 
 ```bash
-# Send request uden payment
+# Send request without payment
 curl -X POST http://localhost:3001/api/generate \
   -H "Content-Type: application/json" \
   -d '{
@@ -397,10 +397,10 @@ curl -X POST http://localhost:3001/api/generate \
 # }
 ```
 
-### Test med Payment
+### Test with Payment
 
 ```bash
-# Send request MED payment signature
+# Send request WITH payment signature
 curl -X POST http://localhost:3001/api/generate \
   -H "Content-Type: application/json" \
   -d '{
@@ -419,13 +419,13 @@ curl -X POST http://localhost:3001/api/generate \
 # }
 ```
 
-## 📈 Monitoring & Logging
+## Monitoring & Logging
 
-### Log Alle Payment Events
+### Log All Payment Events
 
 ```typescript
 // Log 402 responses
-console.log('🚫 HTTP 402: Payment Required', {
+console.log('HTTP 402: Payment Required', {
   generationId,
   amount,
   model,
@@ -433,24 +433,24 @@ console.log('🚫 HTTP 402: Payment Required', {
 });
 
 // Log payment verifications
-console.log('💳 Verificerer betaling', {
+console.log('Verifying payment', {
   signature,
   expectedAmount,
   timestamp: new Date(),
 });
 
 // Log successful verifications
-console.log('✅ Betaling verificeret', {
+console.log('Payment verified', {
   signature,
   generationId,
   timestamp: new Date(),
 });
 ```
 
-### Database Logging (Anbefalet)
+### Database Logging (Recommended)
 
 ```typescript
-// Log til database for audit trail
+// Log to database for audit trail
 await db.payments.create({
   signature,
   generationId,
@@ -462,21 +462,21 @@ await db.payments.create({
 });
 ```
 
-## 🚀 Production Checklist
+## Production Checklist
 
-- [ ] Test 402 responses uden payment
+- [ ] Test 402 responses without payment
 - [ ] Test payment verification on-chain
-- [ ] Implementer idempotency for retries
-- [ ] Tilføj amount verification
-- [ ] Implementer payment timeout
+- [ ] Implement idempotency for retries
+- [ ] Add amount verification
+- [ ] Implement payment timeout
 - [ ] Setup database logging
-- [ ] Implementer monitoring/alerting
-- [ ] Test på devnet først
-- [ ] Dokumenter payment wallet address
+- [ ] Implement monitoring/alerting
+- [ ] Test on devnet first
+- [ ] Document payment wallet address
 - [ ] Setup backup RPC endpoints
 - [ ] Test edge cases (failed payments, network errors)
 
-## 📚 Resources
+## Resources
 
 - [HTTP Status Codes](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/402)
 - [Solana Web3.js Docs](https://solana-labs.github.io/solana-web3.js/)
@@ -485,5 +485,4 @@ await db.payments.create({
 
 ---
 
-**Implementeret af PayPer402 - HTTP 402 Payment Protocol på Solana**
-
+**Implemented by PayPer402 - HTTP 402 Payment Protocol on Solana**

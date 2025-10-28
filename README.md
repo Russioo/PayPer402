@@ -1,117 +1,120 @@
 # PayPer402 - AI Generation via HTTP 402 Protocol
 
-> Professional AI video and image generation powered by Sora 2, Veo 3.1, GPT Image, Ideogram, Qwen og Kling AI. Betal kun for hvad du bruger via Solana USDC betalinger.
+> Professional AI video and image generation powered by Sora 2, Veo 3.1, GPT Image, Ideogram, Qwen and Kling AI. Pay only for what you use via Solana USDC payments.
 
 ![PayPer402](https://img.shields.io/badge/Protocol-HTTP%20402-black)
 ![Solana](https://img.shields.io/badge/Blockchain-Solana-purple)
 ![USDC](https://img.shields.io/badge/Payment-USDC-blue)
 
-## 🚀 Features
+## Features
 
-- **5+ AI Modeller**: Sora 2, Veo 3.1, GPT Image 1, Ideogram, Qwen, Kling AI
-- **Solana Betalinger**: Rigtige USDC betalinger på Solana blockchain
+- **5+ AI Models**: Sora 2, Veo 3.1, GPT Image 1, Ideogram, Qwen, Kling AI
+- **Solana Payments**: Real USDC payments on Solana blockchain
 - **Wallet Integration**: Support for Phantom, Solflare, Coinbase Wallet
-- **Pay-per-use**: Betal kun for det du genererer
+- **Pay-per-use**: Pay only for what you generate
 - **Real-time Generation**: Live progress tracking
-- **Multi-image Support**: Generer op til 4 billeder ad gangen
+- **Multi-image Support**: Generate up to 4 images at once
 
-## 📦 Installation
+## Installation
 
 ```bash
 # Clone repository
 git clone https://github.com/yourusername/payper402.git
 cd payper402
 
-# Installer dependencies
+# Install dependencies
 npm install
 
 # Setup environment variables
 cp .env.example .env.local
-# Rediger .env.local med dine API keys
+# Edit .env.local with your API keys
 
 # Start development server
 npm run dev
 ```
 
-## ⚙️ Konfiguration
+## Configuration
 
 ### 1. API Keys
 
-Opret en `.env.local` fil med:
+Create a `.env.local` file with:
 
 ```env
 # Supabase (for storage)
-NEXT_PUBLIC_SUPABASE_URL=din_supabase_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=din_supabase_key
-SUPABASE_SERVICE_ROLE_KEY=din_service_role_key
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_key
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
 
 # OpenAI (for GPT Image 1)
-OPENAI_API_KEY=din_openai_key
+OPENAI_API_KEY=your_openai_key
 
 # Ideogram
-IDEOGRAM_API_KEY=din_ideogram_key
+IDEOGRAM_API_KEY=your_ideogram_key
 
 # Qwen (Alibaba)
-QWEN_API_KEY=din_qwen_key
+QWEN_API_KEY=your_qwen_key
 QWEN_API_BASE_URL=https://dashscope.aliyuncs.com/api/v1
 
 # Kling AI
-KLING_API_KEY=din_kling_key
+KLING_API_KEY=your_kling_key
 
 # Veo (Google)
-VEO_API_KEY=din_veo_key
+VEO_API_KEY=your_veo_key
 
 # Sora (OpenAI)
-SORA_API_KEY=din_sora_key
+SORA_API_KEY=your_sora_key
+
+# Solana RPC (IMPORTANT)
+NEXT_PUBLIC_SOLANA_RPC_URL=https://mainnet.helius-rpc.com/?api-key=YOUR_API_KEY
 ```
 
 ### 2. Solana Payment Setup
 
-**VIGTIGT**: Opdater payment wallet address i `lib/solana-payment.ts`:
+**IMPORTANT**: Update payment wallet address in `lib/solana-payment.ts`:
 
 ```typescript
-export const PAYMENT_WALLET_ADDRESS = new PublicKey('DIN_WALLET_ADDRESS_HER');
+export const PAYMENT_WALLET_ADDRESS = new PublicKey('YOUR_WALLET_ADDRESS_HERE');
 ```
 
-Se [SOLANA_SETUP.md](./SOLANA_SETUP.md) for komplet guide til Solana integration.
+See [SOLANA_SETUP.md](./SOLANA_SETUP.md) for complete guide to Solana integration.
 
 ### 3. Supabase Storage Setup
 
-1. Opret en Supabase project på [supabase.com](https://supabase.com)
-2. Opret en storage bucket kaldet `generations`
-3. Sæt bucket til public
-4. Opdater `.env.local` med dine credentials
+1. Create a Supabase project at [supabase.com](https://supabase.com)
+2. Create a storage bucket named `generations`
+3. Set bucket to public
+4. Update `.env.local` with your credentials
 
-## 🏗️ Arkitektur
+## Architecture
 
 ### Frontend
-- **Next.js 14** med App Router
-- **React 18** med hooks
-- **Tailwind CSS** til styling
-- **Solana Wallet Adapter** til wallet integration
-- **Axios** til API calls
+- **Next.js 14** with App Router
+- **React 18** with hooks
+- **Tailwind CSS** for styling
+- **Solana Wallet Adapter** for wallet integration
+- **Axios** for API calls
 
 ### Backend
 - **Next.js API Routes** (serverless functions)
-- **Solana Web3.js** til blockchain interaction
-- **SPL Token** til USDC transfers
-- **Supabase** til file storage
+- **Solana Web3.js** for blockchain interaction
+- **SPL Token** for USDC transfers
+- **Supabase** for file storage
 
 ### Blockchain
-- **Solana Mainnet Beta** for betalinger
-- **USDC** (SPL Token) som payment method
-- **On-chain verification** af alle transaktioner
+- **Solana Mainnet Beta** for payments
+- **USDC** (SPL Token) as payment method
+- **On-chain verification** of all transactions
 
-## 🔄 HTTP 402 Payment Flow
+## HTTP 402 Payment Flow
 
-PayPer402 implementerer den rigtige HTTP 402 Payment Required protocol:
+PayPer402 implements the real HTTP 402 Payment Required protocol:
 
 ```
 1. User connects Solana wallet
    ↓
 2. User selects AI model & enters prompt
    ↓
-3. POST /api/generate → Server returnerer HTTP 402 Payment Required
+3. POST /api/generate → Server returns HTTP 402 Payment Required
    {
      "error": "Payment Required",
      "amount": 0.40,
@@ -119,19 +122,19 @@ PayPer402 implementerer den rigtige HTTP 402 Payment Required protocol:
      "network": "Solana"
    }
    ↓
-4. Client viser payment modal med betalingsdetaljer
+4. Client shows payment modal with payment details
    ↓
-5. User godkender USDC transfer i wallet
+5. User approves USDC transfer in wallet
    ↓
-6. Transaction sendes til Solana blockchain
+6. Transaction sent to Solana blockchain
    ↓
-7. Client modtager transaction signature
+7. Client receives transaction signature
    ↓
-8. POST /api/generate MED paymentSignature
+8. POST /api/generate WITH paymentSignature
    ↓
-9. Backend verificerer payment on-chain via Solana RPC
+9. Backend verifies payment on-chain via Solana RPC
    ↓
-10. Hvis verificeret → HTTP 200 OK → AI generation starter
+10. If verified → HTTP 200 OK → AI generation starts
    ↓
 11. Result displayed when ready
 ```
@@ -157,10 +160,10 @@ Content-Type: application/json
 
 ### Payment Verification
 
-Alle betalinger verificeres on-chain:
+All payments are verified on-chain:
 
 ```typescript
-// Backend verificerer transaction på Solana
+// Backend verifies transaction on Solana
 const connection = new Connection(clusterApiUrl('mainnet-beta'));
 const isPaid = await verifyUSDCPayment(
   connection, 
@@ -175,10 +178,10 @@ if (!isPaid) {
 // Start generation...
 ```
 
-## 💡 Understøttede AI Modeller
+## Supported AI Models
 
-| Model | Type | Pris | Features |
-|-------|------|------|----------|
+| Model | Type | Price | Features |
+|-------|------|-------|----------|
 | **Sora 2** | Video | $5.00 | 5-15s video, 720p |
 | **Veo 3.1** | Video | $0.10 | Text/image-to-video |
 | **GPT Image 1** | Image | $0.40 | 1-4 images, reference support |
@@ -186,17 +189,17 @@ if (!isPaid) {
 | **Qwen** | Image | $0.03 | Fast, acceleration modes |
 | **Kling AI** | Video | $0.25 | High quality video |
 
-## 🔐 Sikkerhed
+## Security
 
-- ✅ Wallet authentication required
-- ✅ On-chain payment verification
-- ✅ No private keys stored
-- ✅ Serverless API endpoints
-- ✅ Environment variable protection
+- Wallet authentication required
+- On-chain payment verification
+- No private keys stored
+- Serverless API endpoints
+- Environment variable protection
 
-**Note**: Se [SOLANA_SETUP.md](./SOLANA_SETUP.md) for anbefalinger til produktion.
+**Note**: See [SOLANA_SETUP.md](./SOLANA_SETUP.md) for production recommendations.
 
-## 🛠️ Development
+## Development
 
 ```bash
 # Start development server
@@ -212,7 +215,7 @@ npm start
 npm run lint
 ```
 
-## 📁 Projektstruktur
+## Project Structure
 
 ```
 payper402/
@@ -244,9 +247,9 @@ payper402/
 └── public/               # Static files
 ```
 
-## 🚀 Deployment
+## Deployment
 
-### Vercel (Anbefalet)
+### Vercel (Recommended)
 
 ```bash
 # Install Vercel CLI
@@ -255,68 +258,68 @@ npm i -g vercel
 # Deploy
 vercel
 
-# Deploy til produktion
+# Deploy to production
 vercel --prod
 ```
 
-### Environment Variables på Vercel
+### Environment Variables on Vercel
 
-Tilføj alle environment variables fra `.env.local` i Vercel dashboard under Settings → Environment Variables.
+Add all environment variables from `.env.local` in Vercel dashboard under Settings → Environment Variables.
 
-**Vigtig**: Husk at sætte `PAYMENT_WALLET_ADDRESS` i `lib/solana-payment.ts` før deployment.
+**Important**: Remember to set `PAYMENT_WALLET_ADDRESS` in `lib/solana-payment.ts` before deployment.
 
-## 📚 Dokumentation
+## Documentation
 
-- **[HTTP 402 Protocol Guide](./HTTP_402_GUIDE.md)** - Komplet guide til HTTP 402 implementation
-- **[Solana Setup Guide](./SOLANA_SETUP.md)** - Komplet guide til Solana integration
+- **[HTTP 402 Protocol Guide](./HTTP_402_GUIDE.md)** - Complete guide to HTTP 402 implementation
+- **[Solana Setup Guide](./SOLANA_SETUP.md)** - Complete guide to Solana integration
 - [Getting Started](./GETTING_STARTED.md) - Quick start guide
-- [Quick Start](./QUICK_START.md) - Hurtig opsætning
+- [Quick Start](./QUICK_START.md) - Quick setup
 
 ### Payment Implementation
 
-PayPer402 bruger **rigtig HTTP 402 protocol**:
+PayPer402 uses **real HTTP 402 protocol**:
 
-1. **402 Response**: API returnerer 402 når betaling mangler
-2. **On-chain Verification**: Alle betalinger verificeres på Solana blockchain
-3. **Retry med Payment**: Client sender request igen med payment signature
-4. **Generation Start**: Ved verificeret betaling starter generation
+1. **402 Response**: API returns 402 when payment is missing
+2. **On-chain Verification**: All payments verified on Solana blockchain
+3. **Retry with Payment**: Client sends request again with payment signature
+4. **Generation Start**: When verified, generation starts
 
-Se [HTTP_402_GUIDE.md](./HTTP_402_GUIDE.md) for fuld implementation guide.
+See [HTTP_402_GUIDE.md](./HTTP_402_GUIDE.md) for full implementation guide.
 
-## 🤝 Contributing
+## Contributing
 
-Contributions er velkomne! 
+Contributions are welcome! 
 
-1. Fork projektet
-2. Opret en feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit dine ændringer (`git commit -m 'Add some AmazingFeature'`)
-4. Push til branchen (`git push origin feature/AmazingFeature`)
-5. Åbn en Pull Request
+1. Fork the project
+2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
-## 📄 License
+## License
 
-Dette projekt er licenseret under MIT License - se [LICENSE](LICENSE) filen for detaljer.
+This project is licensed under the MIT License - see [LICENSE](LICENSE) file for details.
 
-## ⚠️ Disclaimer
+## Disclaimer
 
-Dette er et demo projekt der viser HTTP 402 protocol med Solana betalinger. 
+This is a demo project showing HTTP 402 protocol with Solana payments. 
 
-For produktion brug:
-- Implementer fuld payment verification
-- Tilføj database logging
-- Implementer error handling & retries
-- Tilføj monitoring & alerting
-- Implementer refund system
-- Test grundigt på testnet først
+For production use:
+- Implement full payment verification
+- Add database logging
+- Implement error handling & retries
+- Add monitoring & alerting
+- Implement refund system
+- Test thoroughly on testnet first
 
-## 💬 Support
+## Support
 
-Har du spørgsmål eller problemer?
+Have questions or issues?
 
-- 📧 Email: support@payper402.com
-- 🐛 Issues: [GitHub Issues](https://github.com/yourusername/payper402/issues)
+- Email: support@payper402.com
+- Issues: [GitHub Issues](https://github.com/yourusername/payper402/issues)
 
-## 🎯 Roadmap
+## Roadmap
 
 - [x] Solana wallet integration
 - [x] USDC payment support
@@ -330,4 +333,4 @@ Har du spørgsmål eller problemer?
 
 ---
 
-**Made with ❤️ using Next.js, Solana & AI**
+**Made with Next.js, Solana & AI**
