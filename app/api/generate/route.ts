@@ -85,9 +85,9 @@ export async function POST(request: NextRequest) {
     console.log('💳 Verificerer betaling...');
     console.log('Payment Signature:', paymentSignature);
     
-    // Use better RPC endpoint
-    const rpcUrl = process.env.NEXT_PUBLIC_SOLANA_RPC_URL || 
-                   'https://mainnet.helius-rpc.com/?api-key=demo' || 
+    // Server-side RPC endpoint (private, not exposed to browser)
+    // Uses your private Helius API key for reliable payment verification
+    const rpcUrl = process.env.SOLANA_RPC_URL || 
                    clusterApiUrl('mainnet-beta');
     const connection = new Connection(rpcUrl, 'confirmed');
     const isPaid = await verifyUSDCPayment(connection, paymentSignature, modelInfo.price);

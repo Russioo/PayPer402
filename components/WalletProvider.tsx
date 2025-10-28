@@ -14,11 +14,10 @@ interface Props {
 }
 
 export const SolanaWalletProvider: FC<Props> = ({ children }) => {
-  // Use better RPC endpoint - Helius free tier is more reliable
-  // Alternative: Use your own RPC from Alchemy, QuickNode, or Helius
+  // Client-side RPC endpoint (public, visible in browser)
+  // Uses standard Solana RPC or your own public endpoint
   const endpoint = useMemo(() => 
     process.env.NEXT_PUBLIC_SOLANA_RPC_URL || 
-    'https://mainnet.helius-rpc.com/?api-key=demo' || 
     clusterApiUrl('mainnet-beta'), 
   []);
   

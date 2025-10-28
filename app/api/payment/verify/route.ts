@@ -19,9 +19,9 @@ export async function POST(request: NextRequest) {
     console.log('Generation ID:', generationId);
     console.log('Expected amount:', amount, 'USDC');
 
-    // Opret connection til Solana - use better RPC
-    const rpcUrl = process.env.NEXT_PUBLIC_SOLANA_RPC_URL || 
-                   'https://mainnet.helius-rpc.com/?api-key=demo' || 
+    // Server-side RPC endpoint (private, not exposed to browser)
+    // Uses your private Helius API key for reliable payment verification
+    const rpcUrl = process.env.SOLANA_RPC_URL || 
                    clusterApiUrl('mainnet-beta');
     const connection = new Connection(rpcUrl, 'confirmed');
 
