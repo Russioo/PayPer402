@@ -126,7 +126,7 @@ export default function GenerationForm({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (prompt.trim() && !isLoading) {
-      let options;
+      let options: any;
       
       if (is4oImage) {
         options = {
