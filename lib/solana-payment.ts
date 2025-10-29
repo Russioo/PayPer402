@@ -23,8 +23,8 @@ export const PAYMENT_TOKEN_MINT_ADDRESS = new PublicKey('4BwTM7JvCXnMHPoxfPBoNjx
 // Payment wallet address - Alle token payments går hertil
 export const PAYMENT_WALLET_ADDRESS = new PublicKey('BXm4a7VzW3GWH2MkUqFTc5uM3XrQDvVbYA3KbXoUvgez');
 
-// Token decimals (de fleste Solana tokens bruger 9 decimaler)
-export const TOKEN_DECIMALS = 9;
+// Token decimals (tjek din token's faktiske decimals)
+export const TOKEN_DECIMALS = 6;
 
 export interface SolanaPaymentRequest {
   amount: number; // USD amount
@@ -56,12 +56,15 @@ export async function sendUSDCPayment(
     const { tokenAmount: payperAmount, tokenPrice, source } = await calculateTokenAmount(usdAmount);
     
     console.log('💰 Token pris:', `$${tokenPrice}`, `(kilde: ${source})`);
-    console.log('💰 $PAYPER amount:', payperAmount.toFixed(2), '$PAYPER');
+    console.log('💰 $PAYPER amount:', Math.floor(payperAmount), '$PAYPER');
     console.log('👛 Fra:', payerPublicKey.toBase58());
     console.log('🎯 Til:', PAYMENT_WALLET_ADDRESS.toBase58());
 
-    // Konverter token amount til mindste enhed (9 decimaler)
+    // Konverter token amount til mindste enhed (6 decimaler)
     const tokenAmountRaw = Math.floor(payperAmount * Math.pow(10, TOKEN_DECIMALS));
+    
+    console.log('🔢 Raw token amount (u64):', tokenAmountRaw);
+    console.log('🔢 Beregning:', `${Math.floor(payperAmount)} × 10^${TOKEN_DECIMALS} = ${tokenAmountRaw}`);
     
     // Find associated token accounts
     const fromTokenAccount = await getAssociatedTokenAddress(
@@ -99,15 +102,15 @@ export async function sendUSDCPayment(
       const balanceInfo = await connection.getTokenAccountBalance(fromTokenAccount);
       const currentBalance = parseFloat(balanceInfo.value.amount) / Math.pow(10, TOKEN_DECIMALS);
       
-      console.log('💵 Nuværende $PAYPER balance:', currentBalance);
-      console.log('💳 Påkrævet amount:', payperAmount.toFixed(2), '$PAYPER');
+      console.log('💵 Nuværende $PAYPER balance:', Math.floor(currentBalance));
+      console.log('💳 Påkrævet amount:', Math.floor(payperAmount), '$PAYPER');
       
       if (currentBalance < payperAmount) {
         console.log('⚠️  Ikke nok $PAYPER!');
         return {
           success: false,
           signature: '',
-          error: `Ikke nok $PAYPER! Du har ${currentBalance.toFixed(2)} $PAYPER, men har brug for ${payperAmount.toFixed(2)} $PAYPER.`,
+          error: `Ikke nok $PAYPER! Du har ${Math.floor(currentBalance)} $PAYPER, men har brug for ${Math.floor(payperAmount)} $PAYPER.`,
         };
       }
     } catch (balanceError) {
@@ -157,10 +160,44 @@ export async function sendUSDCPayment(
     transaction.recentBlockhash = blockhash;
     transaction.feePayer = payerPublicKey;
 
+    console.log('🧪 Transaction oprettet, antal instructions:', transaction.instructions.length);
+    
+    // Simuler transaction først for at fange fejl
+    try {
+      console.log('🔍 Simulerer transaction...');
+      const simulation = await connection.simulateTransaction(transaction);
+      
+      if (simulation.value.err) {
+        console.error('❌ Transaction simulering fejlede:', simulation.value.err);
+        console.error('Logs:', simulation.value.logs);
+        return {
+          signature: '',
+          success: false,
+          error: `Transaction validation fejlede: ${JSON.stringify(simulation.value.err)}`,
+        };
+      }
+      console.log('✅ Transaction simulering OK');
+    } catch (simError: any) {
+      console.warn('⚠️  Kunne ikke simulere transaction:', simError.message);
+      // Fortsæt alligevel - simulation er ikke kritisk
+    }
+
     console.log('✍️ Signing transaction...');
     
-    // Sign transaction med wallet
-    const signedTransaction = await signTransaction(transaction);
+    let signedTransaction;
+    try {
+      // Sign transaction med wallet
+      signedTransaction = await signTransaction(transaction);
+      console.log('✅ Transaction signed successfully');
+    } catch (signError: any) {
+      console.error('❌ Signing error:', signError);
+      console.error('Error details:', signError.message, signError.name);
+      return {
+        signature: '',
+        success: false,
+        error: `Signing fejlede: ${signError.message || 'Bruger annullerede eller wallet fejl'}`,
+      };
+    }
 
     console.log('📤 Sender transaction...');
     

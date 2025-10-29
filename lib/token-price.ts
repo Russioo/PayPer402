@@ -41,10 +41,31 @@ async function fetchPriceFromDexScreener(): Promise<number | null> {
     if (data.pairs && data.pairs.length > 0) {
       // Tag den første (mest liquid) pair
       const mainPair = data.pairs[0];
-      const price = parseFloat(mainPair.priceUsd);
+      console.log('🔍 DexScreener raw priceUsd:', mainPair.priceUsd, typeof mainPair.priceUsd);
       
-      if (price && price > 0) {
+      // Parse price - håndter både string og number, samt komma/punktum
+      let priceString = String(mainPair.priceUsd);
+      // Erstat komma med punktum hvis der er komma
+      priceString = priceString.replace(',', '.');
+      const price = parseFloat(priceString);
+      
+      console.log(`🔍 After parsing: ${price} (original: ${mainPair.priceUsd})`);
+      
+      if (price && price > 0 && !isNaN(price)) {
         console.log(`💰 $PAYPER pris fra DexScreener: $${price}`);
+        console.log(`💰 $PAYPER pris (scientific): ${price.toExponential()}`);
+        
+        // Sanity check: For $0.03 USD skulle vi ikke bruge mere end ~10,000 tokens
+        const testAmount = 0.03;
+        const tokensNeeded = (testAmount / 0.9) / price;
+        console.log(`🧪 Sanity test: $${testAmount} ville koste ${tokensNeeded.toFixed(0)} tokens`);
+        
+        if (tokensNeeded > 100000) {
+          console.error(`⚠️ ADVARSEL: Pris ser for lav ud! ${tokensNeeded.toFixed(0)} tokens for $${testAmount}!`);
+          console.error(`⚠️ Springer over denne pris...`);
+          return null;
+        }
+        
         return price;
       }
     }
@@ -80,9 +101,25 @@ async function fetchPriceFromJupiter(): Promise<number | null> {
     const data = await response.json();
     
     if (data.data && data.data[mintAddress]) {
-      const price = data.data[mintAddress].price;
+      console.log('🔍 Jupiter raw price:', data.data[mintAddress].price, typeof data.data[mintAddress].price);
       
-      if (price && price > 0) {
+      let priceString = String(data.data[mintAddress].price);
+      priceString = priceString.replace(',', '.');
+      const price = parseFloat(priceString);
+      
+      console.log(`🔍 After parsing: ${price}`);
+      
+      if (price && price > 0 && !isNaN(price)) {
+        // Sanity check
+        const testAmount = 0.03;
+        const tokensNeeded = (testAmount / 0.9) / price;
+        console.log(`🧪 Sanity test: $${testAmount} ville koste ${tokensNeeded.toFixed(0)} tokens`);
+        
+        if (tokensNeeded > 100000) {
+          console.error(`⚠️ ADVARSEL: Jupiter pris ser for lav ud! Springer over...`);
+          return null;
+        }
+        
         console.log(`💰 $PAYPER pris fra Jupiter: $${price}`);
         return price;
       }
@@ -123,8 +160,17 @@ export async function getTokenPriceUSD(): Promise<TokenPrice> {
   // Fallback til standard værdi hvis begge kilder fejler
   if (!price || price <= 0) {
     console.warn('⚠️  Kunne ikke hente live pris, bruger fallback');
-    price = 0.0001; // Fallback: $0.0001 per token (10x mindre end USDC)
+    price = 0.0001; // Fallback: $0.0001 per token
     source = 'Fallback';
+  }
+  
+  // Safety check: hvis prisen er EKSTREMT lav (under $0.00000001), noget er nok galt
+  if (price < 0.00000001) {
+    console.error(`⚠️ ⚠️  ADVARSEL: Token pris er EKSTREMT lav: $${price}`);
+    console.error(`⚠️ ⚠️  Dette ville kræve ${(0.030 / price).toFixed(0)} tokens for en $0.030 betaling!`);
+    console.error(`⚠️ ⚠️  Bruger sikker fallback i stedet: $0.0001`);
+    price = 0.0001;
+    source = 'SafeFallback';
   }
 
   // Cache resultatet
@@ -142,9 +188,13 @@ export const BUYBACK_FEE_PERCENTAGE = 10;
 
 /**
  * Beregner hvor mange $PAYPER tokens der skal bruges for et givet USD beløb
- * 10% af den TOTALE betaling går til buyback
- * Så hvis model koster $0.042, skal brugeren betale $0.042 / 0.9 = $0.0467
- * Hvoraf 10% ($0.00467) går til buyback, og vi får $0.042
+ * Brugeren betaler det antal tokens der svarer til USD beløbet
+ * Vi tager 10% af betalingen til buyback
+ * 
+ * Eksempel: Model koster $0.03, token pris er $0.0001
+ * - Brugeren betaler: $0.03 / $0.0001 = 300 PAYPER
+ * - 10% buyback: 30 PAYPER
+ * - Vi modtager: 270 PAYPER
  */
 export async function calculateTokenAmount(usdAmount: number): Promise<{
   tokenAmount: number;
@@ -156,27 +206,37 @@ export async function calculateTokenAmount(usdAmount: number): Promise<{
 }> {
   const priceInfo = await getTokenPriceUSD();
   
-  // Beregn total pris som brugeren skal betale
-  // usdAmount er hvad VI skal modtage (90% af total)
-  // Så total = usdAmount / 0.9
-  const totalUSD = usdAmount / (1 - BUYBACK_FEE_PERCENTAGE / 100);
-  const totalTokenAmount = totalUSD / priceInfo.priceUSD;
+  console.log(`🔍 ===== PRIS DEBUG =====`);
+  console.log(`🔍 Token pris brugt: $${priceInfo.priceUSD} (${priceInfo.source})`);
+  console.log(`🔍 Token pris (scientific): ${priceInfo.priceUSD.toExponential()}`);
+  console.log(`🔍 USD amount: $${usdAmount}`);
   
-  // 10% af TOTAL betalingen går til buyback
-  const feeAmount = totalTokenAmount * (BUYBACK_FEE_PERCENTAGE / 100);
+  // Beregn hvor mange tokens der svarer til USD beløbet
+  // F.eks: $0.03 / $0.0001 per token = 300 tokens
+  const totalTokenAmountExact = usdAmount / priceInfo.priceUSD;
   
-  // Det vi faktisk modtager (90% af total)
+  // Rund ned til heltal (ingen decimaler)
+  const totalTokenAmount = Math.floor(totalTokenAmountExact);
+  
+  console.log(`🔍 Beregning: $${usdAmount} / $${priceInfo.priceUSD} = ${totalTokenAmountExact.toFixed(2)} → ${totalTokenAmount} tokens (afrundet)`);
+  
+  // 10% af betalingen går til buyback (også afrundet)
+  const feeAmount = Math.floor(totalTokenAmount * (BUYBACK_FEE_PERCENTAGE / 100));
+  
+  // Det vi faktisk modtager (90% af betalingen)
   const baseTokenAmount = totalTokenAmount - feeAmount;
 
-  console.log(`💵 Model pris (hvad vi modtager): $${usdAmount} USD = ${baseTokenAmount.toFixed(2)} $PAYPER`);
-  console.log(`💰 Total pris (inkl. buyback): $${totalUSD.toFixed(4)} USD = ${totalTokenAmount.toFixed(2)} $PAYPER`);
-  console.log(`🔥 10% Buyback Fee: ${feeAmount.toFixed(2)} $PAYPER`);
+  console.log(`💵 Model pris: $${usdAmount} USD`);
+  console.log(`💰 Brugeren betaler: ${totalTokenAmount} $PAYPER`);
+  console.log(`🔥 10% Buyback: ${feeAmount} $PAYPER`);
+  console.log(`✅ Vi modtager: ${baseTokenAmount} $PAYPER`);
+  console.log(`🔍 ===== SLUT DEBUG =====`);
 
   return {
     tokenAmount: totalTokenAmount, // Total amount brugeren betaler
     tokenAmountWithFee: totalTokenAmount,
-    baseAmount: baseTokenAmount, // Det vi modtager
-    feeAmount: feeAmount, // Går til buyback
+    baseAmount: baseTokenAmount, // Det vi modtager (90%)
+    feeAmount: feeAmount, // Går til buyback (10%)
     tokenPrice: priceInfo.priceUSD,
     source: priceInfo.source,
   };

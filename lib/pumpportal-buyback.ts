@@ -1,16 +1,17 @@
 /**
  * PumpPortal Buyback Service
- * Automatisk buyback af $PAYPER tokens fra 10% fee på alle transaktioner
+ * Automatic buyback of $PAYPER tokens from 10% fee on all transactions
  */
 
 import { PAYMENT_TOKEN_MINT_ADDRESS } from './solana-payment';
-import { Keypair } from '@solana/web3.js';
+import { Keypair, VersionedTransaction } from '@solana/web3.js';
+import bs58 from 'bs58';
 
 const PUMPPORTAL_API_URL = 'https://pumpportal.fun/api/trade-local';
 
 export interface BuybackRequest {
-  feeAmountSOL: number; // 10% fee amount i SOL værdi
-  transactionId: string; // Reference til original payment
+  feeAmountSOL: number; // 10% fee amount in SOL value
+  transactionId: string; // Reference to original payment
 }
 
 export interface BuybackResult {
@@ -21,51 +22,72 @@ export interface BuybackResult {
 }
 
 /**
- * Udfører automatisk buyback af $PAYPER tokens via PumpPortal
+ * Executes automatic buyback of $PAYPER tokens via PumpPortal
  */
 export async function executeBuyback(
   feeAmountSOL: number,
   referenceId: string
 ): Promise<BuybackResult> {
   try {
-    console.log('🔄 Starter $PAYPER buyback...');
+    console.log('🔥 Starting $PAYPER buyback...');
     console.log('💰 Fee amount:', feeAmountSOL, 'SOL');
     console.log('📝 Reference ID:', referenceId);
 
-    // Hent buyback wallet keys fra environment
+    // Get buyback wallet keys from environment
     const buybackPublicKey = process.env.BUYBACK_WALLET_PUBLIC_KEY;
     const buybackPrivateKey = process.env.BUYBACK_WALLET_PRIVATE_KEY;
 
     if (!buybackPublicKey || !buybackPrivateKey) {
-      console.error('❌ Buyback wallet keys ikke konfigureret');
+      console.error('❌ Buyback wallet keys not configured');
+      console.error('Set BUYBACK_WALLET_PUBLIC_KEY and BUYBACK_WALLET_PRIVATE_KEY in .env');
       return {
         success: false,
         error: 'Buyback wallet not configured',
       };
     }
 
-    // Byg PumpPortal trade request
+    // Build PumpPortal trade request (EXACT format from docs)
     const tradeRequest = {
       publicKey: buybackPublicKey,
       action: 'buy',
-      mint: PAYMENT_TOKEN_MINT_ADDRESS.toBase58(),
+      mint: PAYMENT_TOKEN_MINT_ADDRESS.toBase58(), // 4BwTM7JvCXnMHPoxfPBoNjxYSbQpVQUMPtK5KNGppump
       amount: feeAmountSOL,
-      denominatedInSol: 'true', // Vi køber for SOL værdi
+      denominatedInSol: 'true', // Amount is in SOL
       slippage: 15, // 15% slippage tolerance
-      priorityFee: 0.001, // Priority fee
-      pool: 'auto', // Auto-select bedste pool
+      priorityFee: 0.005, // Priority fee in SOL
+      pool: 'auto', // Auto-select best pool
     };
 
-    console.log('📤 Sender buyback request til PumpPortal...');
+    console.log('📤 Sending buyback request to PumpPortal...');
+    console.log('Request:', JSON.stringify(tradeRequest, null, 2));
     
-    // Kald PumpPortal API
-    const response = await fetch(PUMPPORTAL_API_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(tradeRequest),
-    });
+    let response;
+    try {
+      // Call PumpPortal API to get serialized transaction
+      response = await fetch(PUMPPORTAL_API_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(tradeRequest),
+        signal: AbortSignal.timeout(10000), // 10 second timeout
+      });
+    } catch (fetchError: any) {
+      console.error('❌ PumpPortal fetch fejl:', fetchError);
+      console.error('Fejl type:', fetchError.name, fetchError.code);
+      
+      if (fetchError.code === 'EAI_AGAIN' || fetchError.code === 'ENOTFOUND') {
+        return {
+          success: false,
+          error: 'DNS lookup fejl - kan ikke nå pumpportal.fun. Tjek internet forbindelse.',
+        };
+      }
+      
+      return {
+        success: false,
+        error: `Netværks fejl: ${fetchError.message}`,
+      };
+    }
 
     if (!response.ok) {
       console.error('❌ PumpPortal API error:', response.status);
@@ -73,20 +95,36 @@ export async function executeBuyback(
       console.error('Error details:', errorText);
       return {
         success: false,
-        error: `PumpPortal API error: ${response.status}`,
+        error: `PumpPortal API error: ${response.status} - ${errorText}`,
       };
     }
 
-    // Hent serialized transaction
+    // Get serialized transaction from PumpPortal
     const txBuffer = await response.arrayBuffer();
+    const txBytes = new Uint8Array(txBuffer);
     
-    // Sign og send transaction
+    console.log('✅ Received transaction from PumpPortal');
+    console.log('Transaction size:', txBytes.length, 'bytes');
+    
+    // Deserialize and sign transaction with our keypair
+    // Decode base58 private key to Uint8Array
+    const privateKeyBytes = bs58.decode(buybackPrivateKey);
+    const keypair = Keypair.fromSecretKey(privateKeyBytes);
+    
+    console.log('✍️ Signing buyback transaction with wallet:', keypair.publicKey.toBase58());
+    
+    // Parse the versioned transaction
+    const transaction = VersionedTransaction.deserialize(txBytes);
+    
+    // Sign it
+    transaction.sign([keypair]);
+    
+    console.log('📤 Sending signed transaction to Solana...');
+    
+    // Send to RPC
     const rpcEndpoint = process.env.NEXT_PUBLIC_SOLANA_RPC_URL || 
                         'https://api.mainnet-beta.solana.com';
     
-    console.log('✍️ Signing og sender buyback transaction...');
-    
-    // Send signed transaction til RPC
     const sendResponse = await fetch(rpcEndpoint, {
       method: 'POST',
       headers: {
@@ -97,7 +135,7 @@ export async function executeBuyback(
         id: 1,
         method: 'sendTransaction',
         params: [
-          Buffer.from(txBuffer).toString('base64'),
+          Buffer.from(transaction.serialize()).toString('base64'),
           {
             encoding: 'base64',
             preflightCommitment: 'confirmed',
@@ -112,7 +150,7 @@ export async function executeBuyback(
       console.error('❌ Transaction send error:', sendResult.error);
       return {
         success: false,
-        error: sendResult.error.message,
+        error: sendResult.error.message || JSON.stringify(sendResult.error),
       };
     }
 
@@ -120,7 +158,7 @@ export async function executeBuyback(
     console.log('✅ Buyback successful!');
     console.log('🔗 Transaction:', `https://solscan.io/tx/${txSignature}`);
 
-    // Log buyback til database/tracking (implementer senere)
+    // Log buyback to database/tracking
     await logBuyback({
       signature: txSignature,
       amount: feeAmountSOL,
@@ -135,6 +173,7 @@ export async function executeBuyback(
     };
   } catch (error: any) {
     console.error('❌ Buyback error:', error);
+    console.error('Error stack:', error.stack);
     return {
       success: false,
       error: error.message || 'Unknown buyback error',
@@ -143,52 +182,60 @@ export async function executeBuyback(
 }
 
 /**
- * Beregner SOL værdi af fee baseret på token mængde og pris
+ * Calculates SOL value of fee based on token amount and price
  */
 export async function calculateFeeValueInSOL(
   feeTokenAmount: number,
   tokenPriceUSD: number
 ): Promise<number> {
-  // Hent SOL pris
+  // Get SOL price
   const solPrice = await getSOLPrice();
   
-  // Beregn USD værdi af fee
+  // Calculate USD value of fee
   const feeUSD = feeTokenAmount * tokenPriceUSD;
   
-  // Konverter til SOL
+  // Convert to SOL
   const feeSOL = feeUSD / solPrice;
   
-  console.log(`💵 Fee beregning: ${feeTokenAmount} tokens × $${tokenPriceUSD} = $${feeUSD} = ${feeSOL} SOL`);
+  console.log(`💵 Fee calculation: ${feeTokenAmount} tokens × $${tokenPriceUSD} = $${feeUSD} = ${feeSOL} SOL`);
   
   return feeSOL;
 }
 
 /**
- * Henter aktuel SOL pris i USD
+ * Gets current SOL price in USD from DexScreener
  */
 async function getSOLPrice(): Promise<number> {
   try {
-    // Prøv Jupiter først
-    const response = await fetch('https://price.jup.ag/v4/price?ids=So11111111111111111111111111111111111111112');
-    const data = await response.json();
+    // Use DexScreener for SOL price
+    const solMint = 'So11111111111111111111111111111111111111112';
+    const response = await fetch(`https://api.dexscreener.com/latest/dex/tokens/${solMint}`, {
+      signal: AbortSignal.timeout(3000), // 3 second timeout
+    });
     
-    if (data.data && data.data['So11111111111111111111111111111111111111112']) {
-      const price = data.data['So11111111111111111111111111111111111111112'].price;
-      console.log('💰 SOL pris:', `$${price}`);
-      return price;
+    if (response.ok) {
+      const data = await response.json();
+      if (data.pairs && data.pairs.length > 0) {
+        const mainPair = data.pairs[0];
+        const price = parseFloat(mainPair.priceUsd);
+        if (price && price > 0) {
+          console.log('💰 SOL price from DexScreener:', `$${price}`);
+          return price;
+        }
+      }
     }
     
-    // Fallback til fast værdi
-    console.warn('⚠️  Kunne ikke hente SOL pris, bruger fallback');
-    return 150; // Fallback SOL pris
+    // Fallback to fixed value
+    console.warn('⚠️  Could not fetch SOL price from DexScreener, using fallback: $170');
+    return 170; // Fallback SOL price
   } catch (error) {
-    console.error('Fejl ved hentning af SOL pris:', error);
-    return 150; // Fallback
+    console.warn('⚠️  Error fetching SOL price (using fallback $170):', error instanceof Error ? error.message : 'Unknown error');
+    return 170; // Fallback
   }
 }
 
 /**
- * Logger buyback til tracking system
+ * Logs buyback to tracking system
  */
 async function logBuyback(data: {
   signature: string;
@@ -197,12 +244,12 @@ async function logBuyback(data: {
   timestamp: string;
 }): Promise<void> {
   try {
-    console.log('📝 Logger buyback:', data);
+    console.log('📝 Logging buyback:', data);
     
-    // Import dynamically for at undgå circular dependencies
+    // Import dynamically to avoid circular dependencies
     const { saveBuyback } = await import('./supabase-buybacks');
     
-    // Hent SOL pris for USD værdi
+    // Get SOL price for USD value
     const solPrice = await getSOLPrice();
     const amountUSD = data.amount * solPrice;
     
@@ -217,13 +264,13 @@ async function logBuyback(data: {
     
     console.log('✅ Buyback logged successfully');
   } catch (error) {
-    console.error('⚠️  Fejl ved logging af buyback:', error);
+    console.error('⚠️  Error logging buyback:', error);
     // Don't fail buyback if logging fails
   }
 }
 
 /**
- * Henter buyback statistik
+ * Gets buyback statistics
  */
 export async function getBuybackStats(): Promise<{
   totalBuybacks: number;

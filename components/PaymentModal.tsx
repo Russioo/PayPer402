@@ -31,7 +31,7 @@ export default function PaymentModal({
   const [baseAmount, setBaseAmount] = useState<number>(0);
   const [feeAmount, setFeeAmount] = useState<number>(0);
   const [priceSource, setPriceSource] = useState<string>('');
-  const [isLoadingPrice, setIsLoadingPrice] = useState(false);
+  const [isLoadingPrice, setIsLoadingPrice] = useState(true);
   
   const { connected, publicKey, signTransaction } = useWallet();
   const { connection } = useConnection();
@@ -50,12 +50,10 @@ export default function PaymentModal({
       setBaseAmount(calculated.baseAmount);
       setFeeAmount(calculated.feeAmount);
       
-      console.log('💰 Hentet token pris:', priceInfo.priceUSD, 'fra', priceInfo.source);
-      console.log('💵 Base amount:', calculated.baseAmount, '$PAYPER');
-      console.log('💰 Buyback fee:', calculated.feeAmount, '$PAYPER (10%)');
-      console.log('💳 Total amount:', calculated.tokenAmountWithFee, '$PAYPER for', amount, 'USD');
+      console.log('💰 Token price fetched:', priceInfo.priceUSD, priceInfo.source);
+      console.log('💳 Total amount:', Math.floor(calculated.tokenAmountWithFee), '$PAYPER');
     } catch (error) {
-      console.error('Fejl ved hentning af token pris:', error);
+      console.error('Error fetching token price:', error);
       // Fallback
       setTokenPrice(0.0001);
       const base = amount * 10;
@@ -66,6 +64,7 @@ export default function PaymentModal({
       setPriceSource('Fallback');
     } finally {
       setIsLoadingPrice(false);
+      console.log('✅ Price loading complete. isLoadingPrice set to FALSE');
     }
   };
 
@@ -75,6 +74,7 @@ export default function PaymentModal({
       setPaymentStatus('pending');
       setErrorMessage('');
       setTransactionSignature('');
+      setIsLoadingPrice(true);
       fetchTokenPrice();
     } else {
       setTimeout(() => setIsVisible(false), 400);
@@ -86,15 +86,17 @@ export default function PaymentModal({
       setErrorMessage('Please connect your wallet first');
       return;
     }
+    
+    if (payperAmount === 0) {
+      setErrorMessage('Please wait for price to load');
+      return;
+    }
 
     setPaymentStatus('processing');
     setErrorMessage('');
     
     try {
-      console.log('💳 Starting payment...');
-      console.log('USDC equivalent:', amount);
-      console.log('$PAYPER amount:', payperAmount);
-      console.log('Generation ID:', generationId);
+      console.log('💳 Starting payment:', Math.floor(payperAmount), '$PAYPER for', amount, 'USD');
       
       // Send $PAYPER token payment via Solana
       const result = await sendUSDCPayment(
@@ -132,7 +134,7 @@ export default function PaymentModal({
 
   return (
     <div 
-      className={`fixed inset-0 z-50 flex items-center justify-center p-6 transition-all duration-400 ease-out ${
+      className={`fixed inset-0 z-[9999] flex items-center justify-center p-6 transition-all duration-400 ease-out ${
         isOpen ? 'opacity-100' : 'opacity-0'
       }`}
       onClick={(e) => {
@@ -142,11 +144,11 @@ export default function PaymentModal({
       }}
     >
       {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-xl" />
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-xl z-0" />
 
       {/* Modal */}
       <div 
-        className={`relative w-full max-w-lg bg-white transition-all duration-700 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${
+        className={`relative z-10 w-full max-w-lg bg-white transition-all duration-700 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${
           isOpen ? 'scale-100 opacity-100 translate-y-0' : 'scale-90 opacity-0 translate-y-12'
         }`}
       >
@@ -213,7 +215,7 @@ export default function PaymentModal({
                 {isLoadingPrice ? (
                   <Loader2 className="w-16 h-16 animate-spin inline-block text-black/20" />
                 ) : (
-                  payperAmount.toFixed(2)
+                  Math.floor(payperAmount)
                 )}
               </div>
               <div className="text-xs text-black/30 uppercase tracking-[0.25em] font-light">$PAYPER on Solana</div>
@@ -231,7 +233,7 @@ export default function PaymentModal({
                     onClick={fetchTokenPrice}
                     disabled={isLoadingPrice}
                     className="p-1.5 hover:bg-black/5 rounded transition-all group"
-                    title="Opdater pris"
+                    title="Refresh price"
                   >
                     <RefreshCw className={`w-3.5 h-3.5 text-black/30 group-hover:text-black/50 transition-all ${
                       isLoadingPrice ? 'animate-spin' : ''
@@ -249,15 +251,15 @@ export default function PaymentModal({
               </div>
               <div className="flex justify-between items-baseline py-4 border-b border-black/5">
                 <span className="text-black/30 font-light uppercase text-xs tracking-wider">Total Payment</span>
-                <span className="text-black font-light">{payperAmount.toFixed(2)} $PAYPER</span>
+                <span className="text-black font-light">{Math.floor(payperAmount)} $PAYPER</span>
               </div>
               <div className="flex justify-between items-baseline py-4 border-b border-black/5">
                 <span className="text-black/30 font-light uppercase text-xs tracking-wider">Buyback (10% of total)</span>
-                <span className="text-black/60 font-light">{feeAmount.toFixed(2)} $PAYPER</span>
+                <span className="text-black/60 font-light">{Math.floor(feeAmount)} $PAYPER</span>
               </div>
               <div className="flex justify-between items-baseline py-4 border-b border-black/5">
                 <span className="text-black/30 font-light uppercase text-xs tracking-wider">We Receive</span>
-                <span className="text-black/80 font-light">{baseAmount.toFixed(2)} $PAYPER</span>
+                <span className="text-black/80 font-light">{Math.floor(baseAmount)} $PAYPER</span>
               </div>
               <div className="flex justify-between items-baseline py-4 border-b border-black/5">
                 <span className="text-black/30 font-light uppercase text-xs tracking-wider">Model</span>
@@ -316,20 +318,30 @@ export default function PaymentModal({
             </div>
           ) : (
             <button
-              onClick={handlePayment}
-              disabled={paymentStatus === 'processing' || paymentStatus === 'completed' || isLoadingPrice}
-              className={`w-full px-10 py-5 text-sm font-light tracking-[0.1em] uppercase
+              onClick={(e) => {
+                console.log('🖱️ CLICKED!');
+                console.log('disabled?', e.currentTarget.disabled);
+                console.log('isLoadingPrice?', isLoadingPrice);
+                console.log('paymentStatus?', paymentStatus);
+                console.log('payperAmount?', payperAmount);
+                if (!e.currentTarget.disabled) {
+                  handlePayment();
+                }
+              }}
+              onMouseEnter={() => console.log('🖱️ Mouse enter')}
+              disabled={isLoadingPrice || paymentStatus === 'processing' || paymentStatus === 'completed'}
+              className={`relative z-10 w-full px-10 py-5 text-sm font-light tracking-[0.1em] uppercase
                        flex items-center justify-center gap-4
                        transition-all duration-500 ease-out
+                       pointer-events-auto
                        ${paymentStatus === 'completed'
                          ? 'bg-green-600 text-white cursor-default opacity-90'
                          : paymentStatus === 'processing' || isLoadingPrice
                          ? 'bg-black text-white cursor-wait opacity-80'
                          : paymentStatus === 'error'
                          ? 'bg-red-600 text-white hover:bg-red-700 active:scale-[0.98]'
-                         : 'bg-black text-white hover:bg-black/80 active:scale-[0.98]'
-                       }
-                       disabled:cursor-not-allowed`}
+                         : 'bg-black text-white hover:bg-black/80 active:scale-[0.98] cursor-pointer'
+                       }`}
             >
               {isLoadingPrice ? (
                 <>
@@ -346,7 +358,7 @@ export default function PaymentModal({
               ) : paymentStatus === 'error' ? (
                 <span>Try Again</span>
               ) : (
-                <span>Pay {payperAmount.toFixed(2)} $PAYPER</span>
+                <span>Pay {Math.floor(payperAmount)} $PAYPER</span>
               )}
             </button>
           )}

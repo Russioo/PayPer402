@@ -8,6 +8,8 @@ import { createQwenTask } from '@/lib/qwen-ai';
 import { generations } from '@/lib/storage';
 import { Connection, clusterApiUrl } from '@solana/web3.js';
 import { verifyUSDCPayment } from '@/lib/solana-payment';
+import { executeBuyback } from '@/lib/pumpportal-buyback';
+import { calculateTokenAmount } from '@/lib/token-price';
 
 // Store for pending payments (i produktion, brug database)
 const pendingPayments = new Map<string, {
@@ -102,7 +104,79 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log('✅ Betaling verificeret! Starter generering...');
+    console.log('✅ Payment verified! Starting generation...');
+    
+    // ====== AUTOMATIC BUYBACK ======
+    // Execute buyback of $PAYPER with 10% fee
+    try {
+      console.log('🔥 Starting automatic buyback...');
+      
+      // Calculate fee amount based on model price
+      const { feeAmount, tokenPrice } = await calculateTokenAmount(modelInfo.price);
+      
+      console.log(`💰 Model price: $${modelInfo.price} USD`);
+      console.log(`🔥 Fee amount: ${feeAmount.toFixed(2)} $PAYPER`);
+      console.log(`💵 Token price: $${tokenPrice} USD`);
+      
+      // Buyback logic: 10% af model pris × 4000
+      const BUYBACK_MULTIPLIER = 4000;
+      const modelPrice10Percent = modelInfo.price * 0.10;
+      const buybackUSD = modelPrice10Percent * BUYBACK_MULTIPLIER;
+      console.log(`🔥 10% af model pris: $${modelPrice10Percent.toFixed(4)} USD`);
+      console.log(`🔥 Buyback multiplier: ${BUYBACK_MULTIPLIER}x`);
+      console.log(`💰 Buyback USD value: $${buybackUSD.toFixed(2)} USD ($${modelPrice10Percent.toFixed(4)} × ${BUYBACK_MULTIPLIER})`);
+      
+      // Get SOL price from DexScreener
+      let solPrice = 170; // Fallback SOL price
+      try {
+        const solMint = 'So11111111111111111111111111111111111111112';
+        const solPriceResponse = await fetch(`https://api.dexscreener.com/latest/dex/tokens/${solMint}`, {
+          signal: AbortSignal.timeout(3000), // 3 second timeout
+        });
+        
+        if (solPriceResponse.ok) {
+          const solPriceData = await solPriceResponse.json();
+          if (solPriceData.pairs && solPriceData.pairs.length > 0) {
+            const mainPair = solPriceData.pairs[0];
+            const price = parseFloat(mainPair.priceUsd);
+            if (price && price > 0) {
+              solPrice = price;
+              console.log(`💰 SOL price from DexScreener: $${solPrice} USD`);
+            }
+          }
+        }
+      } catch (priceError) {
+        console.warn('⚠️  Could not fetch SOL price from DexScreener, using fallback:', solPrice);
+      }
+      
+      // Convert buyback USD to SOL
+      const buybackSOL = buybackUSD / solPrice;
+      
+      console.log(`💰 SOL price used: $${solPrice} USD`);
+      console.log(`💰 Buyback amount: ${buybackSOL.toFixed(6)} SOL ($${buybackUSD.toFixed(2)} USD)`);
+      
+      // Minimum 0.00001 SOL (very small but allows testing and micro payments)
+      if (buybackSOL >= 0.00001) {
+        console.log(`🔥 Executing buyback for ${buybackSOL.toFixed(6)} SOL ($${buybackUSD.toFixed(2)} USD)...`);
+        
+        const buybackResult = await executeBuyback(buybackSOL, paymentSignature);
+        
+        if (buybackResult.success) {
+          console.log('✅ Buyback executed successfully!');
+          console.log('🔗 Buyback TX:', `https://solscan.io/tx/${buybackResult.txSignature}`);
+        } else {
+          console.warn('⚠️  Buyback failed:', buybackResult.error);
+          // We continue anyway - buyback is not critical for generation
+        }
+      } else {
+        console.log(`⚠️  Buyback amount too small: ${buybackSOL.toFixed(8)} SOL (minimum: 0.00001 SOL)`);
+      }
+    } catch (buybackError) {
+      console.error('❌ Buyback error (non-critical):', buybackError);
+      // Buyback error should not stop generation flow
+    }
+    // ====== END BUYBACK ======
+    
     // ====== END HTTP 402 CHECK ======
 
     // For GPT Image 1 (4o Image), create Kie.ai task immediately
