@@ -316,14 +316,14 @@ export default function PaymentModal({
             </div>
           ) : (
             <button
-              onClick={paymentStatus === 'pending' || paymentStatus === 'error' ? handlePayment : undefined}
-              disabled={paymentStatus === 'processing' || paymentStatus === 'completed'}
+              onClick={handlePayment}
+              disabled={paymentStatus === 'processing' || paymentStatus === 'completed' || isLoadingPrice}
               className={`w-full px-10 py-5 text-sm font-light tracking-[0.1em] uppercase
                        flex items-center justify-center gap-4
                        transition-all duration-500 ease-out
                        ${paymentStatus === 'completed'
                          ? 'bg-green-600 text-white cursor-default opacity-90'
-                         : paymentStatus === 'processing'
+                         : paymentStatus === 'processing' || isLoadingPrice
                          ? 'bg-black text-white cursor-wait opacity-80'
                          : paymentStatus === 'error'
                          ? 'bg-red-600 text-white hover:bg-red-700 active:scale-[0.98]'
@@ -331,7 +331,12 @@ export default function PaymentModal({
                        }
                        disabled:cursor-not-allowed`}
             >
-              {paymentStatus === 'processing' ? (
+              {isLoadingPrice ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>Loading Price...</span>
+                </>
+              ) : paymentStatus === 'processing' ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
                   <span>Processing</span>
