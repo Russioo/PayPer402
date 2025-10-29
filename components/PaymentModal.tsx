@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { X, Loader2, Wallet } from 'lucide-react';
+import { X, Loader2, Wallet, RefreshCw } from 'lucide-react';
 import { useWallet, useConnection } from '@solana/wallet-adapter-react';
-import { sendUSDCPayment } from '@/lib/solana-payment';
+import { sendUSDCPayment, getTokenPriceUSD, calculateTokenAmount } from '@/lib/solana-payment';
 
 interface PaymentModalProps {
   isOpen: boolean;
@@ -26,9 +26,38 @@ export default function PaymentModal({
   const [isVisible, setIsVisible] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [transactionSignature, setTransactionSignature] = useState('');
+  const [tokenPrice, setTokenPrice] = useState<number | null>(null);
+  const [payperAmount, setPayperAmount] = useState<number>(0);
+  const [priceSource, setPriceSource] = useState<string>('');
+  const [isLoadingPrice, setIsLoadingPrice] = useState(false);
   
   const { connected, publicKey, signTransaction } = useWallet();
   const { connection } = useConnection();
+
+  // Hent aktuel token pris
+  const fetchTokenPrice = async () => {
+    setIsLoadingPrice(true);
+    try {
+      const priceInfo = await getTokenPriceUSD();
+      setTokenPrice(priceInfo.priceUSD);
+      setPriceSource(priceInfo.source);
+      
+      // Beregn payper amount
+      const calculated = await calculateTokenAmount(amount);
+      setPayperAmount(calculated.tokenAmount);
+      
+      console.log('💰 Hentet token pris:', priceInfo.priceUSD, 'fra', priceInfo.source);
+      console.log('💵 Beregnet amount:', calculated.tokenAmount, '$PAYPER for', amount, 'USD');
+    } catch (error) {
+      console.error('Fejl ved hentning af token pris:', error);
+      // Fallback
+      setTokenPrice(0.0001);
+      setPayperAmount(amount * 10);
+      setPriceSource('Fallback');
+    } finally {
+      setIsLoadingPrice(false);
+    }
+  };
 
   useEffect(() => {
     if (isOpen) {
@@ -36,10 +65,11 @@ export default function PaymentModal({
       setPaymentStatus('pending');
       setErrorMessage('');
       setTransactionSignature('');
+      fetchTokenPrice();
     } else {
       setTimeout(() => setIsVisible(false), 400);
     }
-  }, [isOpen]);
+  }, [isOpen, amount]);
 
   const handlePayment = async () => {
     if (!connected || !publicKey || !signTransaction) {
@@ -52,10 +82,11 @@ export default function PaymentModal({
     
     try {
       console.log('💳 Starting payment...');
-      console.log('Amount:', amount, 'USDC');
+      console.log('USDC equivalent:', amount);
+      console.log('$PAYPER amount:', payperAmount);
       console.log('Generation ID:', generationId);
       
-      // Send USDC payment via Solana
+      // Send $PAYPER token payment via Solana
       const result = await sendUSDCPayment(
         connection,
         publicKey,
@@ -147,7 +178,7 @@ export default function PaymentModal({
                 ? 'Processing Payment'
                 : paymentStatus === 'error'
                 ? 'Payment Failed'
-                : 'Pay with USDC'}
+                : 'Pay With $PAYPER'}
             </h2>
             <p className="text-sm text-black/40 font-light tracking-wide">
               {paymentStatus === 'completed' 
@@ -169,13 +200,43 @@ export default function PaymentModal({
             {/* Amount Display */}
             <div className="py-12 border-t border-b border-black/10">
               <div className="text-7xl font-extralight mb-3 tabular-nums text-black tracking-tight">
-                ${amount.toFixed(2)}
+                {isLoadingPrice ? (
+                  <Loader2 className="w-16 h-16 animate-spin inline-block text-black/20" />
+                ) : (
+                  payperAmount.toFixed(2)
+                )}
               </div>
-              <div className="text-xs text-black/30 uppercase tracking-[0.25em] font-light">USDC on Solana</div>
+              <div className="text-xs text-black/30 uppercase tracking-[0.25em] font-light">$PAYPER on Solana</div>
+              
+              {/* Token Price Info */}
+              {!isLoadingPrice && tokenPrice && (
+                <div className="mt-6 flex items-center justify-center gap-3">
+                  <div className="text-xs text-black/40 font-light">
+                    1 $PAYPER = ${tokenPrice.toFixed(6)} USD
+                    {priceSource && (
+                      <span className="ml-2 text-black/25">({priceSource})</span>
+                    )}
+                  </div>
+                  <button
+                    onClick={fetchTokenPrice}
+                    disabled={isLoadingPrice}
+                    className="p-1.5 hover:bg-black/5 rounded transition-all group"
+                    title="Opdater pris"
+                  >
+                    <RefreshCw className={`w-3.5 h-3.5 text-black/30 group-hover:text-black/50 transition-all ${
+                      isLoadingPrice ? 'animate-spin' : ''
+                    }`} />
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* Details */}
             <div className="space-y-1 text-sm">
+              <div className="flex justify-between items-baseline py-4 border-b border-black/5">
+                <span className="text-black/30 font-light uppercase text-xs tracking-wider">USD Price</span>
+                <span className="text-black font-light">${amount.toFixed(3)}</span>
+              </div>
               <div className="flex justify-between items-baseline py-4 border-b border-black/5">
                 <span className="text-black/30 font-light uppercase text-xs tracking-wider">Model</span>
                 <span className="text-black font-light">{modelName}</span>
@@ -258,7 +319,7 @@ export default function PaymentModal({
               ) : paymentStatus === 'error' ? (
                 <span>Try Again</span>
               ) : (
-                <span>Pay {amount} USDC</span>
+                <span>Pay {payperAmount.toFixed(2)} $PAYPER</span>
               )}
             </button>
           )}
