@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Connection, clusterApiUrl } from '@solana/web3.js';
-import { verifyUSDCPayment } from '@/lib/solana-payment';
+import { verifyUSDCPayment, getTokenPriceUSD } from '@/lib/solana-payment';
+import { executeBuyback, calculateFeeValueInSOL } from '@/lib/pumpportal-buyback';
+import { BUYBACK_FEE_PERCENTAGE } from '@/lib/token-price';
 
 export async function POST(request: NextRequest) {
   try {
@@ -29,6 +31,49 @@ export async function POST(request: NextRequest) {
 
     if (isPaid) {
       console.log('✅ Betaling verificeret!');
+      
+      // Udfør automatisk buyback med 10% fee
+      try {
+        console.log('🔄 Starter automatisk buyback...');
+        
+        // Beregn 10% af brugerens betaling
+        const feeUSD = amount * 0.1;
+        
+        // Gang med 4000 for buyback amount
+        const buybackUSD = feeUSD * 4000;
+        
+        console.log(`💳 Bruger betaler: $${amount.toFixed(4)} USD`);
+        console.log(`💰 10% af betaling: $${feeUSD.toFixed(4)} USD`);
+        console.log(`🔥 Buyback amount: $${buybackUSD.toFixed(2)} USD (${feeUSD} × 4000)`);
+        
+        // Hent SOL pris for at konvertere USD til SOL
+        const solPriceResponse = await fetch('https://price.jup.ag/v4/price?ids=So11111111111111111111111111111111111111112');
+        const solPriceData = await solPriceResponse.json();
+        const solPrice = solPriceData.data?.['So11111111111111111111111111111111111111112']?.price || 150;
+        
+        // Konverter buyback USD til SOL
+        const feeSOL = buybackUSD / solPrice;
+        
+        // Minimum 0.001 SOL for at det giver mening
+        if (feeSOL >= 0.001) {
+          console.log(`💰 Udfører buyback for ${feeSOL} SOL...`);
+          
+          const buybackResult = await executeBuyback(feeSOL, generationId);
+          
+          if (buybackResult.success) {
+            console.log('✅ Buyback gennemført!', buybackResult.txSignature);
+          } else {
+            console.warn('⚠️  Buyback fejlede:', buybackResult.error);
+            // Vi fortsætter alligevel med payment - buyback er ikke critical
+          }
+        } else {
+          console.log('⚠️  Fee for lille til buyback:', feeSOL, 'SOL');
+        }
+      } catch (buybackError) {
+        console.error('❌ Buyback error (non-critical):', buybackError);
+        // Buyback error skal ikke stoppe payment flow
+      }
+      
       return NextResponse.json({
         success: true,
         paid: true,

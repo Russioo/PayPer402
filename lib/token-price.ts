@@ -137,21 +137,46 @@ export async function getTokenPriceUSD(): Promise<TokenPrice> {
   return cachedPrice;
 }
 
+// 10% buyback fee - bruges til at købe tilbage $PAYPER fra markedet
+export const BUYBACK_FEE_PERCENTAGE = 10;
+
 /**
  * Beregner hvor mange $PAYPER tokens der skal bruges for et givet USD beløb
+ * 10% af den TOTALE betaling går til buyback
+ * Så hvis model koster $0.042, skal brugeren betale $0.042 / 0.9 = $0.0467
+ * Hvoraf 10% ($0.00467) går til buyback, og vi får $0.042
  */
 export async function calculateTokenAmount(usdAmount: number): Promise<{
   tokenAmount: number;
+  tokenAmountWithFee: number;
+  baseAmount: number;
+  feeAmount: number;
   tokenPrice: number;
   source: string;
 }> {
   const priceInfo = await getTokenPriceUSD();
-  const tokenAmount = usdAmount / priceInfo.priceUSD;
+  
+  // Beregn total pris som brugeren skal betale
+  // usdAmount er hvad VI skal modtage (90% af total)
+  // Så total = usdAmount / 0.9
+  const totalUSD = usdAmount / (1 - BUYBACK_FEE_PERCENTAGE / 100);
+  const totalTokenAmount = totalUSD / priceInfo.priceUSD;
+  
+  // 10% af TOTAL betalingen går til buyback
+  const feeAmount = totalTokenAmount * (BUYBACK_FEE_PERCENTAGE / 100);
+  
+  // Det vi faktisk modtager (90% af total)
+  const baseTokenAmount = totalTokenAmount - feeAmount;
 
-  console.log(`💵 Beregning: $${usdAmount} USD = ${tokenAmount.toFixed(2)} $PAYPER (á $${priceInfo.priceUSD})`);
+  console.log(`💵 Model pris (hvad vi modtager): $${usdAmount} USD = ${baseTokenAmount.toFixed(2)} $PAYPER`);
+  console.log(`💰 Total pris (inkl. buyback): $${totalUSD.toFixed(4)} USD = ${totalTokenAmount.toFixed(2)} $PAYPER`);
+  console.log(`🔥 10% Buyback Fee: ${feeAmount.toFixed(2)} $PAYPER`);
 
   return {
-    tokenAmount,
+    tokenAmount: totalTokenAmount, // Total amount brugeren betaler
+    tokenAmountWithFee: totalTokenAmount,
+    baseAmount: baseTokenAmount, // Det vi modtager
+    feeAmount: feeAmount, // Går til buyback
     tokenPrice: priceInfo.priceUSD,
     source: priceInfo.source,
   };

@@ -28,6 +28,8 @@ export default function PaymentModal({
   const [transactionSignature, setTransactionSignature] = useState('');
   const [tokenPrice, setTokenPrice] = useState<number | null>(null);
   const [payperAmount, setPayperAmount] = useState<number>(0);
+  const [baseAmount, setBaseAmount] = useState<number>(0);
+  const [feeAmount, setFeeAmount] = useState<number>(0);
   const [priceSource, setPriceSource] = useState<string>('');
   const [isLoadingPrice, setIsLoadingPrice] = useState(false);
   
@@ -42,17 +44,25 @@ export default function PaymentModal({
       setTokenPrice(priceInfo.priceUSD);
       setPriceSource(priceInfo.source);
       
-      // Beregn payper amount
+      // Beregn payper amount med fee
       const calculated = await calculateTokenAmount(amount);
-      setPayperAmount(calculated.tokenAmount);
+      setPayperAmount(calculated.tokenAmountWithFee);
+      setBaseAmount(calculated.baseAmount);
+      setFeeAmount(calculated.feeAmount);
       
       console.log('💰 Hentet token pris:', priceInfo.priceUSD, 'fra', priceInfo.source);
-      console.log('💵 Beregnet amount:', calculated.tokenAmount, '$PAYPER for', amount, 'USD');
+      console.log('💵 Base amount:', calculated.baseAmount, '$PAYPER');
+      console.log('💰 Buyback fee:', calculated.feeAmount, '$PAYPER (10%)');
+      console.log('💳 Total amount:', calculated.tokenAmountWithFee, '$PAYPER for', amount, 'USD');
     } catch (error) {
       console.error('Fejl ved hentning af token pris:', error);
       // Fallback
       setTokenPrice(0.0001);
-      setPayperAmount(amount * 10);
+      const base = amount * 10;
+      const fee = base * 0.1;
+      setBaseAmount(base);
+      setFeeAmount(fee);
+      setPayperAmount(base + fee);
       setPriceSource('Fallback');
     } finally {
       setIsLoadingPrice(false);
@@ -234,8 +244,20 @@ export default function PaymentModal({
             {/* Details */}
             <div className="space-y-1 text-sm">
               <div className="flex justify-between items-baseline py-4 border-b border-black/5">
-                <span className="text-black/30 font-light uppercase text-xs tracking-wider">USD Price</span>
+                <span className="text-black/30 font-light uppercase text-xs tracking-wider">Model Price</span>
                 <span className="text-black font-light">${amount.toFixed(3)}</span>
+              </div>
+              <div className="flex justify-between items-baseline py-4 border-b border-black/5">
+                <span className="text-black/30 font-light uppercase text-xs tracking-wider">Total Payment</span>
+                <span className="text-black font-light">{payperAmount.toFixed(2)} $PAYPER</span>
+              </div>
+              <div className="flex justify-between items-baseline py-4 border-b border-black/5">
+                <span className="text-black/30 font-light uppercase text-xs tracking-wider">Buyback (10% of total)</span>
+                <span className="text-black/60 font-light">{feeAmount.toFixed(2)} $PAYPER</span>
+              </div>
+              <div className="flex justify-between items-baseline py-4 border-b border-black/5">
+                <span className="text-black/30 font-light uppercase text-xs tracking-wider">We Receive</span>
+                <span className="text-black/80 font-light">{baseAmount.toFixed(2)} $PAYPER</span>
               </div>
               <div className="flex justify-between items-baseline py-4 border-b border-black/5">
                 <span className="text-black/30 font-light uppercase text-xs tracking-wider">Model</span>
