@@ -231,118 +231,124 @@ export default function GenerationForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5 md:space-y-6">
       <textarea
         value={prompt}
         onChange={(e) => setPrompt(e.target.value)}
         placeholder="Describe what you want to create..."
-        rows={5}
-        className="w-full px-5 py-4 border border-black/10 text-black placeholder:text-black/40
+        rows={4}
+        className="w-full px-3 sm:px-4 md:px-5 py-3 sm:py-3.5 md:py-4 border border-black/10 text-black placeholder:text-black/40
                  focus:outline-none focus:border-black/30 transition-colors duration-300 resize-none
-                 text-base leading-relaxed"
+                 text-sm sm:text-base leading-relaxed"
         disabled={isLoading}
       />
 
       <div className="flex items-center justify-between">
-        <span className="text-xs text-black/45 tabular-nums">{prompt.length} characters</span>
+        <span className="text-[10px] sm:text-xs text-black/45 tabular-nums">{prompt.length} characters</span>
       </div>
 
       {/* 4o Image Settings */}
       {is4oImage && (
-        <div className="space-y-6 pt-4 border-t border-black/10 animate-in fade-in slide-in-from-top-4 duration-500">
+        <div className="space-y-4 sm:space-y-5 md:space-y-6 pt-3 sm:pt-4 border-t border-black/10 animate-in fade-in slide-in-from-top-4 duration-500">
           {/* Aspect Ratio */}
           <div>
-            <label className="block text-xs font-light uppercase tracking-wider text-black/40 mb-3">
+            <label className="block text-[10px] sm:text-xs font-light uppercase tracking-wider text-black/40 mb-2 sm:mb-3">
               Aspect Ratio
             </label>
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-3 gap-2 sm:gap-3">
               <button
                 type="button"
                 onClick={() => setImage4oSize('1:1')}
                 disabled={isLoading}
-                className={`py-3 px-4 border text-sm font-light transition-all duration-300 ${
+                className={`py-2 sm:py-2.5 md:py-3 px-2 sm:px-3 md:px-4 border text-xs sm:text-sm font-light transition-all duration-300 ${
                   image4oSize === '1:1'
                     ? 'border-black bg-black text-white'
                     : 'border-black/10 hover:border-black/20 text-black/60'
                 }`}
               >
-                1:1 Square
+                <span className="hidden sm:inline">1:1 Square</span>
+                <span className="sm:hidden">1:1</span>
               </button>
               <button
                 type="button"
                 onClick={() => setImage4oSize('3:2')}
                 disabled={isLoading}
-                className={`py-3 px-4 border text-sm font-light transition-all duration-300 ${
+                className={`py-2 sm:py-2.5 md:py-3 px-2 sm:px-3 md:px-4 border text-xs sm:text-sm font-light transition-all duration-300 ${
                   image4oSize === '3:2'
                     ? 'border-black bg-black text-white'
                     : 'border-black/10 hover:border-black/20 text-black/60'
                 }`}
               >
-                3:2 Landscape
+                <span className="hidden sm:inline">3:2 Landscape</span>
+                <span className="sm:hidden">3:2</span>
               </button>
               <button
                 type="button"
                 onClick={() => setImage4oSize('2:3')}
                 disabled={isLoading}
-                className={`py-3 px-4 border text-sm font-light transition-all duration-300 ${
+                className={`py-2 sm:py-2.5 md:py-3 px-2 sm:px-3 md:px-4 border text-xs sm:text-sm font-light transition-all duration-300 ${
                   image4oSize === '2:3'
                     ? 'border-black bg-black text-white'
                     : 'border-black/10 hover:border-black/20 text-black/60'
                 }`}
               >
-                2:3 Portrait
+                <span className="hidden sm:inline">2:3 Portrait</span>
+                <span className="sm:hidden">2:3</span>
               </button>
             </div>
           </div>
 
           {/* Quantity */}
           <div>
-            <label className="block text-xs font-light uppercase tracking-wider text-black/40 mb-3">
+            <label className="block text-[10px] sm:text-xs font-light uppercase tracking-wider text-black/40 mb-2 sm:mb-3">
               Quantity
             </label>
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-3 gap-2 sm:gap-3">
               <button
                 type="button"
                 onClick={() => setImage4oVariants(1)}
                 disabled={isLoading}
-                className={`py-3 px-4 border text-sm font-light transition-all duration-300 ${
+                className={`py-2 sm:py-2.5 md:py-3 px-2 sm:px-3 md:px-4 border text-xs sm:text-sm font-light transition-all duration-300 ${
                   image4oVariants === 1
                     ? 'border-black bg-black text-white'
                     : 'border-black/10 hover:border-black/20 text-black/60'
                 }`}
               >
-                1 Image
+                <span className="hidden sm:inline">1 Image</span>
+                <span className="sm:hidden">1</span>
               </button>
               <button
                 type="button"
                 onClick={() => setImage4oVariants(2)}
                 disabled={isLoading}
-                className={`py-3 px-4 border text-sm font-light transition-all duration-300 ${
+                className={`py-2 sm:py-2.5 md:py-3 px-2 sm:px-3 md:px-4 border text-xs sm:text-sm font-light transition-all duration-300 ${
                   image4oVariants === 2
                     ? 'border-black bg-black text-white'
                     : 'border-black/10 hover:border-black/20 text-black/60'
                 }`}
               >
-                2 Images
+                <span className="hidden sm:inline">2 Images</span>
+                <span className="sm:hidden">2</span>
               </button>
               <button
                 type="button"
                 onClick={() => setImage4oVariants(4)}
                 disabled={isLoading}
-                className={`py-3 px-4 border text-sm font-light transition-all duration-300 ${
+                className={`py-2 sm:py-2.5 md:py-3 px-2 sm:px-3 md:px-4 border text-xs sm:text-sm font-light transition-all duration-300 ${
                   image4oVariants === 4
                     ? 'border-black bg-black text-white'
                     : 'border-black/10 hover:border-black/20 text-black/60'
                 }`}
               >
-                4 Images
+                <span className="hidden sm:inline">4 Images</span>
+                <span className="sm:hidden">4</span>
               </button>
             </div>
           </div>
 
           {/* Reference Image (Optional) */}
           <div>
-            <label className="block text-xs font-light uppercase tracking-wider text-black/40 mb-3">
+            <label className="block text-[10px] sm:text-xs font-light uppercase tracking-wider text-black/40 mb-2 sm:mb-3">
               Reference Image (Optional)
             </label>
             
@@ -368,12 +374,12 @@ export default function GenerationForm({
                   disabled={isLoading}
                   className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                 />
-                <div className="py-8 px-6 text-center">
-                  <div className="w-12 h-12 border border-black/10 mx-auto mb-3"></div>
-                  <p className="text-sm text-black/60 mb-1">
+                <div className="py-6 sm:py-7 md:py-8 px-4 sm:px-5 md:px-6 text-center">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 border border-black/10 mx-auto mb-2 sm:mb-3"></div>
+                  <p className="text-xs sm:text-sm text-black/60 mb-1">
                     Drag and drop reference image
                   </p>
-                  <p className="text-xs text-black/30">
+                  <p className="text-[10px] sm:text-xs text-black/30">
                     or click to browse
                   </p>
                 </div>
@@ -1107,19 +1113,19 @@ export default function GenerationForm({
       <button
         type="submit"
         disabled={!prompt.trim() || !selectedModel || isLoading || uploadingImages}
-        className="w-full px-8 py-4 bg-black text-white text-sm font-medium tracking-wide
+        className="w-full px-6 sm:px-7 md:px-8 py-3 sm:py-3.5 md:py-4 bg-black text-white text-xs sm:text-sm font-medium tracking-wide
                  disabled:opacity-20 disabled:cursor-not-allowed
                  hover:bg-black/90 transition-all duration-200
-                 flex items-center justify-center gap-3"
+                 flex items-center justify-center gap-2 sm:gap-3"
       >
         {uploadingImages ? (
           <>
-            <Loader2 className="w-4 h-4 animate-spin" />
+            <Loader2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 animate-spin" />
             <span>Uploading Images</span>
           </>
         ) : isLoading ? (
           <>
-            <Loader2 className="w-4 h-4 animate-spin" />
+            <Loader2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 animate-spin" />
             <span>Generating</span>
           </>
         ) : (

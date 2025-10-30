@@ -35,27 +35,27 @@ export default function GenerationProgress({
   };
 
   return (
-    <div className="w-full space-y-6 py-8">
+    <div className="w-full space-y-4 sm:space-y-5 md:space-y-6 py-6 sm:py-7 md:py-8 px-2">
       {/* Status Icon & Text */}
       <div className="text-center">
-        <div className="inline-flex items-center justify-center w-16 h-16 mb-6 border-2 border-black/10">
-          <Loader2 className="w-8 h-8 text-black animate-spin" />
+        <div className="inline-flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 mb-4 sm:mb-5 md:mb-6 border-2 border-black/10">
+          <Loader2 className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 text-black animate-spin" />
         </div>
-        <h3 className="text-xl font-extralight text-black mb-2">
+        <h3 className="text-base sm:text-lg md:text-xl font-extralight text-black mb-1.5 sm:mb-2 px-4">
           {statusText[status]}
         </h3>
-        <p className="text-sm text-black/40 font-light">
+        <p className="text-xs sm:text-sm text-black/40 font-light">
           {elapsedTime}s elapsed
         </p>
       </div>
 
       {/* Progress Bar */}
-      <div className="space-y-3">
+      <div className="space-y-2 sm:space-y-3">
         <div className="flex justify-between items-baseline">
-          <span className="text-xs uppercase tracking-wider text-black/30 font-light">
+          <span className="text-[10px] sm:text-xs uppercase tracking-wider text-black/30 font-light">
             Progress
           </span>
-          <span className="text-sm tabular-nums text-black/60 font-light">
+          <span className="text-xs sm:text-sm tabular-nums text-black/60 font-light">
             {Math.round(progress)}%
           </span>
         </div>
@@ -69,12 +69,12 @@ export default function GenerationProgress({
       </div>
 
       {/* Estimated Time */}
-      <div className="text-center pt-4">
-        <p className="text-xs text-black/30 font-light tracking-wide">
+      <div className="text-center pt-3 sm:pt-4 px-4">
+        <p className="text-[10px] sm:text-xs text-black/30 font-light tracking-wide">
           Estimated: ~{estimatedTotal}s • High quality rendering
         </p>
         {elapsedTime > estimatedTotal && (
-          <p className="text-xs text-black/40 font-light mt-2">
+          <p className="text-[10px] sm:text-xs text-black/40 font-light mt-1.5 sm:mt-2">
             Taking a bit longer than expected...
           </p>
         )}

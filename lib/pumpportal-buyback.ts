@@ -205,7 +205,7 @@ export async function calculateFeeValueInSOL(
 /**
  * Gets current SOL price in USD from DexScreener
  */
-async function getSOLPrice(): Promise<number> {
+export async function getSOLPrice(): Promise<number> {
   try {
     // Use DexScreener for SOL price
     const solMint = 'So11111111111111111111111111111111111111112';

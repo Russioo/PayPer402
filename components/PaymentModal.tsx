@@ -32,6 +32,7 @@ export default function PaymentModal({
   const [feeAmount, setFeeAmount] = useState<number>(0);
   const [priceSource, setPriceSource] = useState<string>('');
   const [isLoadingPrice, setIsLoadingPrice] = useState(true);
+  const [showDetails, setShowDetails] = useState(false);
   
   const { connected, publicKey, signTransaction } = useWallet();
   const { connection } = useConnection();
@@ -134,7 +135,7 @@ export default function PaymentModal({
 
   return (
     <div 
-      className={`fixed inset-0 z-[9999] flex items-center justify-center p-6 transition-all duration-400 ease-out ${
+      className={`fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 transition-all duration-400 ease-out ${
         isOpen ? 'opacity-100' : 'opacity-0'
       }`}
       onClick={(e) => {
@@ -148,42 +149,42 @@ export default function PaymentModal({
 
       {/* Modal */}
       <div 
-        className={`relative z-10 w-full max-w-lg bg-white transition-all duration-700 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${
-          isOpen ? 'scale-100 opacity-100 translate-y-0' : 'scale-90 opacity-0 translate-y-12'
+        className={`relative z-10 w-full max-w-md md:max-w-lg bg-white rounded-3xl shadow-xl transition-all duration-600 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${
+          isOpen ? 'scale-100 opacity-100 translate-y-0' : 'scale-95 opacity-0 translate-y-10'
         }`}
       >
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-8 right-8 p-2.5 hover:bg-black/5 transition-all duration-300 group disabled:opacity-30"
+          className="absolute top-6 right-6 p-2 hover:bg-black/5 rounded-full transition-all duration-300 group disabled:opacity-30"
           disabled={paymentStatus === 'processing'}
         >
           <X className="w-5 h-5 text-black/30 group-hover:text-black/70 transition-colors duration-300" />
         </button>
 
         {/* Content */}
-        <div className="px-12 py-14">
+        <div className="px-5 sm:px-8 py-8">
           {/* Header */}
-          <div className="mb-12 text-center">
-            <div className="mb-8">
+          <div className="mb-6 text-center">
+            <div className="mb-4">
               <div className={`inline-block transition-all duration-700 ${
                 paymentStatus === 'processing'
                   ? 'scale-110 opacity-100'
                   : 'scale-100 opacity-100'
               }`}>
                 {paymentStatus === 'processing' ? (
-                  <Loader2 className="w-12 h-12 text-black animate-spin" />
+                  <Loader2 className="w-10 h-10 text-black animate-spin" />
                 ) : paymentStatus === 'error' ? (
-                  <div className="w-12 h-12 border-2 border-red-500/30 rounded-full flex items-center justify-center">
-                    <X className="w-6 h-6 text-red-500" />
+                  <div className="w-10 h-10 border-2 border-red-500/30 rounded-full flex items-center justify-center">
+                    <X className="w-5 h-5 text-red-500" />
                   </div>
                 ) : (
-                  <Wallet className="w-12 h-12 text-black/20" />
+                  <Wallet className="w-10 h-10 text-black/20" />
                 )}
               </div>
             </div>
 
-            <h2 className="text-3xl font-extralight mb-3 tracking-tight text-black">
+            <h2 className="text-xl sm:text-2xl font-extralight mb-2 tracking-tight text-black">
               {paymentStatus === 'completed' 
                 ? 'Payment Complete' 
                 : paymentStatus === 'processing'
@@ -192,7 +193,7 @@ export default function PaymentModal({
                 ? 'Payment Failed'
                 : 'Pay With $PAYPER'}
             </h2>
-            <p className="text-sm text-black/40 font-light tracking-wide">
+            <p className="text-xs text-black/40 font-light tracking-wide">
               {paymentStatus === 'completed' 
                 ? 'Your generation is starting now' 
                 : paymentStatus === 'processing'
@@ -210,84 +211,104 @@ export default function PaymentModal({
               : 'opacity-100 translate-y-0 max-h-[600px]'
           }`}>
             {/* Amount Display */}
-            <div className="py-12 border-t border-b border-black/10">
-              <div className="text-7xl font-extralight mb-3 tabular-nums text-black tracking-tight">
-                {isLoadingPrice ? (
-                  <Loader2 className="w-16 h-16 animate-spin inline-block text-black/20" />
+            <div className="py-6 border border-black/10 rounded-2xl bg-black/[0.015] text-center">
+              <div className="flex flex-col items-center justify-center gap-1">
+                <div className="text-4xl sm:text-5xl font-extralight tabular-nums text-black tracking-tight">
+                  {isLoadingPrice ? (
+                    <Loader2 className="w-12 h-12 animate-spin text-black/20" />
                 ) : (
-                  Math.floor(payperAmount)
+                    Math.floor(payperAmount)
+                )}
+                </div>
+                <div className="text-[10px] sm:text-[11px] text-black/30 uppercase tracking-[0.28em] font-light">$PAYPER on Solana</div>
+
+                {/* Token Price Info */}
+                {!isLoadingPrice && tokenPrice && (
+                  <div className="flex items-center justify-center gap-2 mt-1.5">
+                    <div className="text-[11px] sm:text-xs text-black/40 font-light">
+                      1 $PAYPER = ${tokenPrice.toFixed(6)} USD
+                      {priceSource && (
+                        <span className="ml-1.5 text-black/25">({priceSource})</span>
+                      )}
+                    </div>
+                    <button
+                      onClick={fetchTokenPrice}
+                      disabled={isLoadingPrice}
+                      className="p-1.5 hover:bg-black/5 rounded transition-all group"
+                      title="Refresh price"
+                    >
+                      <RefreshCw className={`w-3.5 h-3.5 text-black/30 group-hover:text-black/50 transition-all ${
+                        isLoadingPrice ? 'animate-spin' : ''
+                      }`} />
+                    </button>
+                  </div>
                 )}
               </div>
-              <div className="text-xs text-black/30 uppercase tracking-[0.25em] font-light">$PAYPER on Solana</div>
-              
-              {/* Token Price Info */}
-              {!isLoadingPrice && tokenPrice && (
-                <div className="mt-6 flex items-center justify-center gap-3">
-                  <div className="text-xs text-black/40 font-light">
-                    1 $PAYPER = ${tokenPrice.toFixed(6)} USD
-                    {priceSource && (
-                      <span className="ml-2 text-black/25">({priceSource})</span>
-                    )}
-                  </div>
-                  <button
-                    onClick={fetchTokenPrice}
-                    disabled={isLoadingPrice}
-                    className="p-1.5 hover:bg-black/5 rounded transition-all group"
-                    title="Refresh price"
-                  >
-                    <RefreshCw className={`w-3.5 h-3.5 text-black/30 group-hover:text-black/50 transition-all ${
-                      isLoadingPrice ? 'animate-spin' : ''
-                    }`} />
-                  </button>
-                </div>
-              )}
             </div>
 
             {/* Details */}
             <div className="space-y-1 text-sm">
-              <div className="flex justify-between items-baseline py-4 border-b border-black/5">
+              <div className="flex justify-between items-baseline py-3">
                 <span className="text-black/30 font-light uppercase text-xs tracking-wider">Model Price</span>
                 <span className="text-black font-light">${amount.toFixed(3)}</span>
               </div>
-              <div className="flex justify-between items-baseline py-4 border-b border-black/5">
+              <div className="flex justify-between items-baseline py-3 border-b border-black/5">
                 <span className="text-black/30 font-light uppercase text-xs tracking-wider">Total Payment</span>
                 <span className="text-black font-light">{Math.floor(payperAmount)} $PAYPER</span>
               </div>
-              <div className="flex justify-between items-baseline py-4 border-b border-black/5">
-                <span className="text-black/30 font-light uppercase text-xs tracking-wider">Buyback (10% of total)</span>
-                <span className="text-black/60 font-light">{Math.floor(feeAmount)} $PAYPER</span>
-              </div>
-              <div className="flex justify-between items-baseline py-4 border-b border-black/5">
-                <span className="text-black/30 font-light uppercase text-xs tracking-wider">We Receive</span>
-                <span className="text-black/80 font-light">{Math.floor(baseAmount)} $PAYPER</span>
-              </div>
-              <div className="flex justify-between items-baseline py-4 border-b border-black/5">
-                <span className="text-black/30 font-light uppercase text-xs tracking-wider">Model</span>
-                <span className="text-black font-light">{modelName}</span>
-              </div>
-              <div className="flex justify-between items-baseline py-4 border-b border-black/5">
-                <span className="text-black/30 font-light uppercase text-xs tracking-wider">Network</span>
-                <span className="text-black font-light">Solana Mainnet</span>
-              </div>
-              {connected && publicKey && (
-                <div className="flex justify-between items-baseline py-4">
-                  <span className="text-black/30 font-light uppercase text-xs tracking-wider">Your Wallet</span>
-                  <span className="text-black/40 font-mono text-xs tracking-tight">
-                    {publicKey.toBase58().substring(0, 8)}...{publicKey.toBase58().substring(publicKey.toBase58().length - 6)}
-                  </span>
+              <button
+                onClick={() => setShowDetails((prev) => !prev)}
+                className="mt-2 w-full text-left text-[11px] uppercase tracking-[0.22em] text-black/35 hover:text-black/60 transition-colors flex items-center justify-between"
+              >
+                More details
+                <span className="text-black/40 text-sm font-light">
+                  {showDetails ? '-' : '+'}
+                </span>
+              </button>
+
+              <div
+                className={`overflow-hidden transition-all duration-400 ease-out ${
+                  showDetails ? 'max-h-64 opacity-100 mt-2' : 'max-h-0 opacity-0'
+                }`}
+              >
+                <div className="space-y-1 border-t border-black/5 pt-2 text-sm">
+                  <div className="flex justify-between items-baseline py-2">
+                    <span className="text-black/30 font-light uppercase text-[11px] tracking-wider">Buyback (10%)</span>
+                    <span className="text-black/60 font-light">{Math.floor(feeAmount)} $PAYPER</span>
+                  </div>
+                  <div className="flex justify-between items-baseline py-2">
+                    <span className="text-black/30 font-light uppercase text-[11px] tracking-wider">We Receive</span>
+                    <span className="text-black/80 font-light">{Math.floor(baseAmount)} $PAYPER</span>
+                  </div>
+                  <div className="flex justify-between items-baseline py-2">
+                    <span className="text-black/30 font-light uppercase text-[11px] tracking-wider">Model</span>
+                    <span className="text-black font-light">{modelName}</span>
+                  </div>
+                  <div className="flex justify-between items-baseline py-2">
+                    <span className="text-black/30 font-light uppercase text-[11px] tracking-wider">Network</span>
+                    <span className="text-black font-light">Solana Mainnet</span>
+                  </div>
+                  {connected && publicKey && (
+                    <div className="flex justify-between items-baseline py-2">
+                      <span className="text-black/30 font-light uppercase text-[11px] tracking-wider">Wallet</span>
+                      <span className="text-black/40 font-mono text-[11px] tracking-tight">
+                        {publicKey.toBase58().substring(0, 8)}...{publicKey.toBase58().substring(publicKey.toBase58().length - 6)}
+                      </span>
+                    </div>
+                  )}
                 </div>
-              )}
+              </div>
             </div>
           </div>
 
           {/* Success Message - Slide in when completed */}
           <div className={`transition-all duration-700 ${
             paymentStatus === 'completed' 
-              ? 'opacity-100 translate-y-0 max-h-40 mb-10' 
-              : 'opacity-0 translate-y-8 max-h-0 overflow-hidden pointer-events-none'
+              ? 'opacity-100 translate-y-0 max-h-36 mb-8' 
+              : 'opacity-0 translate-y-6 max-h-0 overflow-hidden pointer-events-none'
           }`}>
-            <div className="py-8 border-t border-b border-black/10 text-center space-y-4">
-              <p className="text-sm text-black/60 font-light tracking-wide">
+            <div className="py-6 border-t border-b border-black/10 text-center space-y-3">
+              <p className="text-sm text-black/60 font-light">
                 Generating your content...
               </p>
               {transactionSignature && (
@@ -305,7 +326,7 @@ export default function PaymentModal({
 
           {/* Error Message */}
           {paymentStatus === 'error' && (
-            <div className="mb-8 p-6 bg-red-50 border border-red-100">
+            <div className="mb-5 p-4 bg-red-50 border border-red-100 rounded-xl">
               <p className="text-sm text-red-600 text-center">{errorMessage}</p>
             </div>
           )}
@@ -330,7 +351,7 @@ export default function PaymentModal({
               }}
               onMouseEnter={() => console.log('🖱️ Mouse enter')}
               disabled={isLoadingPrice || paymentStatus === 'processing' || paymentStatus === 'completed'}
-              className={`relative z-10 w-full px-10 py-5 text-sm font-light tracking-[0.1em] uppercase
+              className={`relative z-10 w-full px-7 py-3.5 text-[11px] sm:text-sm font-light tracking-[0.18em] uppercase
                        flex items-center justify-center gap-4
                        transition-all duration-500 ease-out
                        pointer-events-auto
@@ -364,10 +385,10 @@ export default function PaymentModal({
           )}
 
           {/* Footer */}
-          <div className={`mt-8 pt-8 border-t border-black/5 transition-opacity duration-500 ${
+          <div className={`mt-6 pt-6 border-t border-black/5 transition-opacity duration-500 ${
             paymentStatus === 'pending' || paymentStatus === 'error' ? 'opacity-100' : 'opacity-0'
           }`}>
-            <p className="text-xs text-center text-black/25 uppercase tracking-[0.2em] font-light">
+            <p className="text-[9px] text-center text-black/25 uppercase tracking-[0.28em] font-light">
               Secured by Solana Network
             </p>
           </div>

@@ -63,18 +63,18 @@ export default function Toast({
 
   return (
     <div
-      className={`fixed top-8 right-8 z-[60] max-w-md transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${
+      className={`fixed top-4 right-4 z-[60] max-w-sm transition-all duration-400 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${
         isVisible 
           ? 'opacity-100 translate-x-0 scale-100' 
           : 'opacity-0 translate-x-12 scale-95 pointer-events-none'
       }`}
     >
       <div
-        className={`flex items-center gap-4 px-6 py-5 border shadow-2xl backdrop-blur-xl ${styles[type]}`}
+        className={`flex items-center gap-3 px-4 py-3.5 border shadow-xl backdrop-blur-lg rounded-2xl ${styles[type]}`}
       >
         <div className="flex-shrink-0 text-black/60">{icons[type]}</div>
         
-        <p className="flex-1 text-sm font-light leading-relaxed text-black/80 tracking-wide">{message}</p>
+        <p className="flex-1 text-xs sm:text-sm font-light leading-relaxed text-black/80 tracking-wide">{message}</p>
         
         {type !== 'loading' && (
           <button
@@ -82,7 +82,7 @@ export default function Toast({
               setIsVisible(false);
               setTimeout(onClose, 400);
             }}
-            className="flex-shrink-0 p-1.5 hover:bg-black/5 transition-all duration-300"
+            className="flex-shrink-0 p-1.5 hover:bg-black/5 rounded-md transition-all duration-300"
           >
             <X className="w-4 h-4 text-black/30" />
           </button>

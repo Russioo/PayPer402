@@ -97,14 +97,14 @@ export default function ResultDisplay({
   const hasMultipleImages = displayUrls.length > 1 && type === 'image';
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-5 md:space-y-6">
       {/* Preview */}
       {hasMultipleImages ? (
         <div>
-          <div className="text-xs text-black/45 mb-3 uppercase tracking-wider">
+          <div className="text-[10px] sm:text-xs text-black/45 mb-2 sm:mb-3 uppercase tracking-wider">
             {displayUrls.length} Variants
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-2 sm:gap-3">
             {displayUrls.map((imgUrl, index) => (
               <div key={index} className="group relative border border-black/5 overflow-hidden bg-black/[0.02]">
                 <div className="relative w-full aspect-square">
@@ -118,7 +118,7 @@ export default function ResultDisplay({
                 </div>
                 <button
                   onClick={() => handleDownload(imgUrl, index)}
-                  className="absolute top-2 right-2 p-2 bg-white/90 hover:bg-white
+                  className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 p-1.5 sm:p-2 bg-white/90 hover:bg-white
                            border border-black/10 opacity-0 group-hover:opacity-100
                            transition-opacity duration-200"
                   title={`Download image ${index + 1}`}
@@ -148,39 +148,39 @@ export default function ResultDisplay({
       )}
 
       {/* Info */}
-      <div className="space-y-4">
+      <div className="space-y-3 sm:space-y-4">
         <div>
-          <div className="text-xs text-black/45 mb-2 uppercase tracking-wider">Prompt</div>
-          <p className="text-sm text-black/75 leading-relaxed">{prompt}</p>
+          <div className="text-[10px] sm:text-xs text-black/45 mb-1.5 sm:mb-2 uppercase tracking-wider">Prompt</div>
+          <p className="text-xs sm:text-sm text-black/75 leading-relaxed">{prompt}</p>
         </div>
-        <div className="pt-4 border-t border-black/10">
-          <div className="text-xs text-black/45 mb-2 uppercase tracking-wider">Model</div>
-          <p className="text-sm text-black font-medium">{modelName}</p>
+        <div className="pt-3 sm:pt-4 border-t border-black/10">
+          <div className="text-[10px] sm:text-xs text-black/45 mb-1.5 sm:mb-2 uppercase tracking-wider">Model</div>
+          <p className="text-xs sm:text-sm text-black font-medium">{modelName}</p>
         </div>
       </div>
 
       {/* Actions */}
-      <div className="grid grid-cols-2 gap-3 pt-2">
+      <div className="grid grid-cols-2 gap-2 sm:gap-3 pt-2">
         <button
           onClick={() => hasMultipleImages ? handleDownloadAll() : handleDownload()}
-          className="py-3 px-4 border border-black/10 hover:border-black/20 hover:bg-black/[0.02]
+          className="py-2.5 sm:py-3 px-3 sm:px-4 border border-black/10 hover:border-black/20 hover:bg-black/[0.02]
                    transition-all duration-300
-                   flex flex-col items-center justify-center gap-2"
+                   flex flex-col items-center justify-center gap-1.5 sm:gap-2"
         >
-          <Download className="w-4 h-4 text-black/60" />
-          <span className="text-xs text-black/50 uppercase tracking-wider">
+          <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-black/60" />
+          <span className="text-[10px] sm:text-xs text-black/50 uppercase tracking-wider">
             {hasMultipleImages ? 'Download ZIP' : 'Save'}
           </span>
         </button>
 
         <button
           onClick={onShare}
-          className="py-3 px-4 border border-black/10 hover:border-black/20 hover:bg-black/[0.02]
+          className="py-2.5 sm:py-3 px-3 sm:px-4 border border-black/10 hover:border-black/20 hover:bg-black/[0.02]
                    transition-all duration-300
-                   flex flex-col items-center justify-center gap-2"
+                   flex flex-col items-center justify-center gap-1.5 sm:gap-2"
         >
-          <Share2 className="w-4 h-4 text-black/60" />
-          <span className="text-xs text-black/50 uppercase tracking-wider">Share</span>
+          <Share2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-black/60" />
+          <span className="text-[10px] sm:text-xs text-black/50 uppercase tracking-wider">Share</span>
         </button>
       </div>
     </div>

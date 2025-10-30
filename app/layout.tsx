@@ -12,6 +12,11 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: 'PayPer402 - AI Generation via HTTP 402 Protocol',
   description: 'Generate videos & images with Sora 2, Veo 3.1, and more. Pay only for what you use via HTTP 402 payment protocol.',
+  viewport: {
+    width: 'device-width',
+    initialScale: 1,
+    maximumScale: 5,
+  },
 };
 
 export default function RootLayout({
